@@ -255,13 +255,14 @@
         if (Math.random() < 0.03) {
           const bubble = document.createElement('div');
           bubble.className = 'bubble';
-          bubble.style.left = (x + 60) + 'px';
-          bubble.style.top = (y + 60) + 'px';
+          const bb = crocWrapper.getBoundingClientRect();
+          bubble.style.left = (bb.left + bb.width / 2) + 'px';
+          bubble.style.top = (bb.top + bb.height / 2) + 'px';
           game.appendChild(bubble);
           setTimeout(() => bubble.remove(), 1000);
         }
 
-        const rectCroc = croc.getBoundingClientRect();
+        const rectCroc = crocWrapper.getBoundingClientRect();
         if (
           rectCroc.left < centerX + 30 &&
           rectCroc.left > centerX - 30 &&
@@ -280,8 +281,9 @@
 
         const splash = document.createElement('div');
         splash.className = 'splash';
-        splash.style.left = (x + 60) + 'px';
-        splash.style.top = (y + 60) + 'px';
+        const crocBox = crocWrapper.getBoundingClientRect();
+        splash.style.left = (crocBox.left + crocBox.width / 2) + 'px';
+        splash.style.top = (crocBox.top + crocBox.height / 2) + 'px';
         game.appendChild(splash);
 
         for (let i = 0; i < 8; i++) {
