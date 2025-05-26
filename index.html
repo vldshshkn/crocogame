@@ -162,7 +162,7 @@ function update() {
 
     croc.style.left = x + 'px';
     croc.style.top = y + 'px';
-    croc.style.transform = `rotate(${angle + Math.PI / 2}rad)`;
+    croc.style.transform = `rotate(${angle + Math.PI}rad)`;
 
     // Проверка по центру крокодила, не углам
     const cx = x + 60;
@@ -184,6 +184,11 @@ function update() {
 }
 
 function startGame() {
+  // очистим всех кроков
+  CROCS.forEach(c => c.remove());
+  CROCS.length = 0;
+  gameEnded = false;
+  endScreen.classList.remove("active");
   gameEnded = false;
   endScreen.classList.remove("active");
   CROCS.forEach(c => c.remove());
@@ -199,6 +204,7 @@ function startGame() {
   setTimeout(() => {
     if (!gameEnded) {
       window.location.href = "http://lera-birthday.com/final";
+    }
       gameEnded = true;
     }
   }, GAME_DURATION);
