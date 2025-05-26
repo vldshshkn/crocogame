@@ -241,7 +241,11 @@
           c.top > f.bottom - sh
         );
         if (overlap) {
+          if (!gameOver) {
+        // Проверка перед спавном крокодила
+          console.log('Game over triggered by crocodile');
           endGame(false);
+        }
           return;
         }
 
