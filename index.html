@@ -40,12 +40,28 @@
       position: absolute;
       width: 120px;
       cursor: pointer;
-      transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+      transition: transform 0.4s ease-out;
     }
 
-    .fade-out {
-      opacity: 0;
-      transform: scale(1.6) rotate(0deg);
+    .crocodile.fade-out {
+      animation: destroy 0.4s forwards;
+    }
+
+    @keyframes destroy {
+      0% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+        filter: brightness(1);
+      }
+      50% {
+        transform: scale(1.2) rotate(20deg);
+        filter: brightness(2);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(0.6) rotate(-20deg);
+        filter: brightness(0.5);
+      }
     }
 
     #message {
@@ -101,8 +117,8 @@
       const angleRad = Math.atan2(dy, dx);
       const angleDeg = angleRad * 180 / Math.PI;
 
-      // Устанавливаем поворот крокодила к центру
-      croc.style.transform = `rotate(${angleDeg}deg)`;
+      // Учитываем, что крокодил на PNG смотрит вниз, т.е. базовый угол = 90
+      croc.style.transform = `rotate(${angleDeg - 90}deg)`;
 
       const speed = 1.2 + Math.random() * 1.5;
 
@@ -143,7 +159,7 @@
           return;
         }
         createCrocodile();
-      }, 1000); // Упростим игру: крокодилы раз в 1 секунду
+      }, 1000); // лёгкий режим
     }
 
     function endGame(win) {
