@@ -8,11 +8,10 @@
     html, body {
       margin: 0;
       padding: 0;
-      overflow: hidden;
       height: 100%;
+      overflow: hidden;
       background: url('background.png') no-repeat center center;
       background-size: cover;
-      font-family: sans-serif;
     }
 
     #game {
@@ -27,9 +26,9 @@
       left: 50%;
       width: 240px;
       transform: translate(-50%, -50%);
-      z-index: 10;
       pointer-events: none;
-      animation: bobbing 3s ease-in-out infinite;
+      z-index: 10;
+      animation: bobbing 3s infinite ease-in-out;
     }
 
     @keyframes bobbing {
@@ -42,10 +41,11 @@
       width: 80px;
       height: 80px;
       border-radius: 50%;
-      border: 2px solid rgba(255, 255, 255, 0.3);
+      border: 2px solid rgba(255,255,255,0.3);
       animation: wave 3s ease-out infinite;
       pointer-events: none;
       z-index: 1;
+      transform: translate(-50%, -50%);
     }
 
     @keyframes wave {
@@ -55,7 +55,6 @@
 
     .crocodile {
       width: 120px;
-      transition: transform 0.4s ease-out;
       animation: sway 2s infinite ease-in-out;
       display: block;
     }
@@ -65,39 +64,37 @@
       50% { transform: rotate(2deg); }
     }
 
-    .splash {
-      position: absolute;
-      width: 60px;
-      height: 60px;
-      background: rgba(255, 255, 255, 0.5);
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-      animation: splash 0.5s ease-out forwards;
-      pointer-events: none;
-      z-index: 5;
-    }
-
-    @keyframes splash {
-      0% { opacity: 1; transform: scale(0.2); }
-      100% { opacity: 0; transform: scale(2); }
-    }
-
     .bubble {
       position: absolute;
-      width: 8px;
-      height: 8px;
-      background: rgba(255, 255, 255, 0.6);
+      width: 6px;
+      height: 6px;
+      background: white;
       border-radius: 50%;
       animation: bubble-rise 1s ease-out forwards;
-      pointer-events: none;
       z-index: 4;
     }
 
     @keyframes bubble-rise {
       to {
-        opacity: 0;
         transform: translateY(-20px) scale(0.5);
+        opacity: 0;
       }
+    }
+
+    .splash {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      animation: splash 0.5s ease-out forwards;
+      z-index: 5;
+    }
+
+    @keyframes splash {
+      0% { transform: scale(0.2); opacity: 1; }
+      100% { transform: scale(2); opacity: 0; }
     }
 
     #message {
@@ -121,31 +118,29 @@
   </audio>
   <div id="game">
     <div id="waves"></div>
-    <img id="friends" src="friends.png" />
+    <img id="friends" src="friends.png">
     <div id="message"></div>
   </div>
 
   <script>
     const game = document.getElementById('game');
     const message = document.getElementById('message');
-    const bgm = document.getElementById('bgm');
     const friends = document.getElementById('friends');
+    const bgm = document.getElementById('bgm');
     let gameOver = false;
-    const gameDuration = 60000;
 
     document.body.addEventListener('click', () => {
       bgm.play();
     }, { once: true });
 
-    function createWaves() {
+    function createFriendWaves() {
       const waves = document.getElementById('waves');
-      [-80, 0, 80].forEach(x => {
-        const wave = document.createElement('div');
-        wave.className = 'friend-wave';
-        wave.style.left = '50%';
-        wave.style.top = '50%';
-        wave.style.transform = `translate(${x}px, -50%)`;
-        waves.appendChild(wave);
+      [-80, 0, 80].forEach(offset => {
+        const w = document.createElement('div');
+        w.className = 'friend-wave';
+        w.style.left = 'calc(50% + ' + offset + 'px)';
+        w.style.top = '50%';
+        waves.appendChild(w);
       });
     }
 
@@ -159,10 +154,6 @@
       wrapper.appendChild(croc);
       game.appendChild(wrapper);
 
-      const friendRect = friends.getBoundingClientRect();
-      const centerX = friendRect.left + friendRect.width / 2;
-      const centerY = friendRect.top + friendRect.height / 2;
-
       const side = Math.floor(Math.random() * 4);
       let x, y;
       if (side === 0) { x = -150; y = Math.random() * window.innerHeight; }
@@ -173,9 +164,10 @@
       wrapper.style.left = x + 'px';
       wrapper.style.top = y + 'px';
 
-      const dx = centerX - x;
-      const dy = centerY - y;
-      const angle = Math.atan2(dy, dx);
+      const rect = friends.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const angle = Math.atan2(centerY - y, centerX - x);
       wrapper.style.transform = `rotate(${angle * 180 / Math.PI - 90}deg)`;
 
       const speed = 1.8;
@@ -187,47 +179,42 @@
         wrapper.style.left = x + 'px';
         wrapper.style.top = y + 'px';
 
-        const fRect = friends.getBoundingClientRect();
-        const cRect = wrapper.getBoundingClientRect();
-        
+        const f = friends.getBoundingClientRect();
+        const c = wrapper.getBoundingClientRect();
         const shrink = 0.2;
-        const shrinkW = fRect.width * shrink / 2;
-        const shrinkH = fRect.height * shrink / 2;
-        const fx1 = fRect.left + shrinkW;
-        const fx2 = fRect.right - shrinkW;
-        const fy1 = fRect.top + shrinkH;
-        const fy2 = fRect.bottom - shrinkH;
+        const sw = f.width * shrink / 2;
+        const sh = f.height * shrink / 2;
         const overlap = !(
-          cRect.right < fx1 ||
-          cRect.left > fx2 ||
-          cRect.bottom < fy1 ||
-          cRect.top > fy2
-        ) || false;
-cRect.right < fRect.left || cRect.left > fRect.right || cRect.bottom < fRect.top || cRect.top > fRect.bottom);
+          c.right < f.left + sw ||
+          c.left > f.right - sw ||
+          c.bottom < f.top + sh ||
+          c.top > f.bottom - sh
+        );
         if (overlap) {
           endGame(false);
           return;
         }
 
-        if (Math.random() < 0.02) {
+        if (Math.random() < 0.03) {
           const b = document.createElement('div');
           b.className = 'bubble';
-          b.style.left = (cRect.left + cRect.width / 2) + 'px';
-          b.style.top = (cRect.top + cRect.height / 2) + 'px';
+          b.style.left = (c.left + c.width / 2) + 'px';
+          b.style.top = (c.top + c.height / 2) + 'px';
           game.appendChild(b);
           setTimeout(() => b.remove(), 1000);
         }
 
         requestAnimationFrame(move);
       }
+
       move();
 
       croc.addEventListener('click', () => {
         const splash = document.createElement('div');
         splash.className = 'splash';
-        const box = wrapper.getBoundingClientRect();
-        splash.style.left = (rect.left + rect.width / 2) + 'px';
-        splash.style.top = (rect.top + rect.height / 2) + 'px';
+        const r = wrapper.getBoundingClientRect();
+        splash.style.left = (r.left + r.width / 2) + 'px';
+        splash.style.top = (r.top + r.height / 2) + 'px';
         game.appendChild(splash);
         wrapper.remove();
         setTimeout(() => splash.remove(), 400);
@@ -235,7 +222,7 @@ cRect.right < fRect.left || cRect.left > fRect.right || cRect.bottom < fRect.top
     }
 
     function startGame() {
-      createWaves();
+      createFriendWaves();
       const spawn = () => {
         if (gameOver) return;
         createCrocodile();
@@ -244,14 +231,14 @@ cRect.right < fRect.left || cRect.left > fRect.right || cRect.bottom < fRect.top
       spawn();
       setTimeout(() => {
         if (!gameOver) endGame(true);
-      }, gameDuration);
+      }, 60000);
     }
 
     function endGame(win) {
       gameOver = true;
       message.textContent = win ? 'Ты спасла друзей!' : 'Ты не спасла друзей!';
-      if (!win) setTimeout(() => location.reload(), 2000);
       message.style.display = 'block';
+      if (!win) setTimeout(() => location.reload(), 2000);
     }
 
     startGame();
