@@ -3,7 +3,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Canvas Кроко</title>
+  <title>Спаси друзей</title>
   <style>
     html, body {
       margin: 0;
@@ -17,13 +17,13 @@
   </style>
 </head>
 <body>
-<audio id="bgm" loop>
+<audio id="bgm" loop autoplay>
   <source src="/crocogame/cocodoco.mp3" type="audio/mpeg">
 </audio>
 <canvas id="gameCanvas"></canvas>
 
 <script>
-console.log("Загрузка...");
+console.log("Игра загружается...");
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -48,18 +48,17 @@ const crocImg = new Image();
 crocImg.src = '/crocogame/crocodile.png';
 
 let assetsLoaded = 0;
-function checkAllLoaded() {
+function checkLoaded() {
   assetsLoaded++;
-  console.log("Загружено: " + assetsLoaded);
   if (assetsLoaded === 3) {
-    console.log("ВСЁ ГОТОВО. Запуск игры.");
+    console.log("Все ресурсы загружены!");
     startGame();
   }
 }
 
-background.onload = checkAllLoaded;
-friendsImg.onload = checkAllLoaded;
-crocImg.onload = checkAllLoaded;
+background.onload = checkLoaded;
+friendsImg.onload = checkLoaded;
+crocImg.onload = checkLoaded;
 
 function startGame() {
   const crocs = [];
@@ -76,7 +75,7 @@ function startGame() {
       angle,
       speed: 1.5 + Math.random() * 1.5,
       dead: false,
-      splashTime: 0
+      splash: 0
     });
   }
 
@@ -97,7 +96,7 @@ function startGame() {
       const dy = croc.y - my;
       if (Math.hypot(dx, dy) < 60) {
         croc.dead = true;
-        croc.splashTime = 30;
+        croc.splash = 30;
       }
     });
   });
@@ -111,7 +110,7 @@ function startGame() {
         const dx = croc.x - canvas.width / 2;
         const dy = croc.y - canvas.height / 2;
         if (Math.hypot(dx, dy) < 60) {
-          alert('Ты не спасла друзей!');
+          alert("Ты не спасла друзей!");
           location.reload();
         }
       }
@@ -130,9 +129,9 @@ function startGame() {
         ctx.rotate(croc.angle + Math.PI / 2);
         ctx.drawImage(crocImg, -60, -60, 120, 120);
         ctx.restore();
-      } else if (croc.splashTime > 0) {
+      } else if (croc.splash > 0) {
         drawSplash(croc.x, croc.y);
-        croc.splashTime--;
+        croc.splash--;
       }
     });
   }
