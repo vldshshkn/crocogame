@@ -194,140 +194,102 @@
       });
     }
 
-    function createCrocodile() {
-      if (gameOver) return;
-
-      const crocWrapper = document.createElement('div');
-      crocWrapper.style.position = 'absolute';
-
-      const croc = document.createElement('img');
-      croc.src = 'crocodile.png';
-      croc.className = 'crocodile';
-      croc.style.opacity = '1';
-      croc.style.display = 'block';
-      croc.style.transform = 'none';
-      croc.classList.remove('fade-out');
-      crocWrapper.classList.remove('fade-out');
-      crocWrapper.style.display = 'block';
-      crocWrapper.style.opacity = '1';
-      crocWrapper.innerHTML = '';
-      crocWrapper.appendChild(croc);
-      croc.style.transform = 'none';
-      croc.classList.remove('fade-out');
-
-      crocWrapper.appendChild(croc);
-
-      
-      const side = Math.floor(Math.random() * 4); // 0 - left, 1 - right, 2 - top, 3 - bottom
-      let startX, startY;
-      if (side === 0) {
-        startX = -150;
-        startY = Math.random() * window.innerHeight;
-      } else if (side === 1) {
-        startX = window.innerWidth + 150;
-        startY = Math.random() * window.innerHeight;
-      } else if (side === 2) {
-        startX = Math.random() * window.innerWidth;
-        startY = -150;
-      } else {
-        startX = Math.random() * window.innerWidth;
-        startY = window.innerHeight + 150;
-      }
     
+      function createCrocodile() {
+        if (gameOver) return;
 
-      crocWrapper.style.left = startX + 'px';
-      crocWrapper.style.top = startY + 'px';
-      game.appendChild(crocWrapper);
+        const crocWrapper = document.createElement('div');
+        crocWrapper.style.position = 'absolute';
 
-      const friends = document.getElementById('friends');
-      const rect = friends.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
+        const croc = document.createElement('img');
+        croc.src = 'crocodile.png';
+        croc.alt = 'croc';
+        croc.style.display = 'block';
+        croc.style.opacity = '1';
+        croc.style.transform = 'none';
+        croc.className = 'crocodile';
 
-      let x = startX;
-      let y = startY;
-      const dx = centerX - x;
-      const dy = centerY - y;
-      const angleRad = Math.atan2(dy, dx);
-      const angleDeg = angleRad * 180 / Math.PI;
+        crocWrapper.appendChild(croc);
+        game.appendChild(crocWrapper);
 
-      crocWrapper.style.transform = `rotate(${angleDeg - 90}deg)`;
+        const friends = document.getElementById('friends');
+        const rect = friends.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
 
-      const speed = 1.2 + Math.random() * 1.5;
+        const side = Math.floor(Math.random() * 4);
+        let x, y;
+        if (side === 0) { x = -150; y = Math.random() * window.innerHeight; }
+        else if (side === 1) { x = window.innerWidth + 150; y = Math.random() * window.innerHeight; }
+        else if (side === 2) { x = Math.random() * window.innerWidth; y = -150; }
+        else { x = Math.random() * window.innerWidth; y = window.innerHeight + 150; }
 
-      function moveCroc() {
-        if (gameOver) {
-          clearInterval(move);
-          return;
-        }
-
-        x += Math.cos(angleRad) * speed;
-        y += Math.sin(angleRad) * speed;
         crocWrapper.style.left = x + 'px';
         crocWrapper.style.top = y + 'px';
 
-        // пузырьки с шансом
-        if (Math.random() < 0.03) {
-          const bubble = document.createElement('div');
-          bubble.className = 'bubble';
-          const bb = crocWrapper.getBoundingClientRect();
-          bubble.style.left = (bb.left + bb.width / 2) + 'px';
-          bubble.style.top = (bb.top + bb.height / 2) + 'px';
-          game.appendChild(bubble);
-          setTimeout(() => bubble.remove(), 1000);
+        const dx = centerX - x;
+        const dy = centerY - y;
+        const angleRad = Math.atan2(dy, dx);
+        const angleDeg = angleRad * 180 / Math.PI;
+
+        crocWrapper.style.transform = `rotate(${angleDeg - 90}deg)`;
+
+        const speed = 1.2 + Math.random() * 1.5;
+
+        function moveCroc() {
+          if (gameOver) return;
+
+          x += Math.cos(angleRad) * speed;
+          y += Math.sin(angleRad) * speed;
+          crocWrapper.style.left = x + 'px';
+          crocWrapper.style.top = y + 'px';
+
+          const rectCroc = crocWrapper.getBoundingClientRect();
+          const overlap = !(
+            rectCroc.right < rect.left ||
+            rectCroc.left > rect.right ||
+            rectCroc.bottom < rect.top ||
+            rectCroc.top > rect.bottom
+          );
+          if (overlap) {
+            endGame(false);
+            return;
+          }
+
+          // пузырь
+          if (Math.random() < 0.03) {
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            const bb = crocWrapper.getBoundingClientRect();
+            bubble.style.left = (bb.left + bb.width / 2) + 'px';
+            bubble.style.top = (bb.top + bb.height / 2) + 'px';
+            game.appendChild(bubble);
+            setTimeout(() => bubble.remove(), 1000);
+          }
+
+          requestAnimationFrame(moveCroc);
         }
 
-        const rectCroc = crocWrapper.getBoundingClientRect();
-        const dist = Math.hypot(centerX - (rectCroc.left + rectCroc.width / 2), centerY - (rectCroc.top + rectCroc.height / 2));
-        if (dist < 40) {
-          endGame(false);
-          clearInterval(move);
-        }
-      if (!gameOver) requestAnimationFrame(moveCroc); }
-moveCroc();
+        moveCroc();
 
-      croc.addEventListener('click', () => {
-        croc.classList.add('fade-out');
-        crocWrapper.style.pointerEvents = 'none';
-        clearInterval(move);
+        croc.addEventListener('click', () => {
+          croc.classList.add('fade-out');
+          const splash = document.createElement('div');
+          splash.className = 'splash';
+          const box = crocWrapper.getBoundingClientRect();
+          splash.style.left = (box.left + box.width / 2) + 'px';
+          splash.style.top = (box.top + box.height / 2) + 'px';
+          game.appendChild(splash);
 
-        const splash = document.createElement('div');
-        splash.className = 'splash';
-        const crocBox = crocWrapper.getBoundingClientRect();
-        splash.style.left = (crocBox.left + crocBox.width / 2) + 'px';
-        splash.style.top = (crocBox.top + crocBox.height / 2) + 'px';
-        game.appendChild(splash);
+          setTimeout(() => {
+            crocWrapper.remove();
+            splash.remove();
+          }, 500);
+        });
+      }
 
-        for (let i = 0; i < 8; i++) {
-          const particle = document.createElement('div');
-          particle.className = 'particle';
-          const offsetX = Math.random() * 60 - 30;
-          const offsetY = Math.random() * 60 - 30;
-          particle.style.left = (x + offsetX) + 'px';
-          particle.style.top = (y + offsetY) + 'px';
-          game.appendChild(particle);
 
-          setTimeout(() => particle.remove(), 600);
-        }
-
-        setTimeout(() => {
-          croc.remove();
-          splash.remove();
-        }, 500);
-      });
-    }
-
-    function startSpawning() {
-      const spawnInterval = setInterval(() => {
-        if (gameOver) {
-          clearInterval(spawnInterval);
-          return;
-        }
-        createCrocodile();
-      }, 1000);
-    }
-
-    function endGame(win) {
+      function endGame(win) {
       gameOver = true;
       message.textContent = win ? 'Ты спасла друзей!' : 'Ты не спас друзей';
       message.style.display = 'block';
