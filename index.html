@@ -159,7 +159,6 @@
     }
 
 
-
     document.body.addEventListener('click', () => {
       bgm.play();
     }, { once: true });
@@ -269,13 +268,20 @@
     function endGame(win) {
       gameOver = true;
       if (win) {
-        if (success && gameOver) {
         window.location.href = "http://lera-birthday.com/final";
-      }
       } else {
+        fadeOutAudio(bgm, () => loseSound.play());
         dedImage.style.display = 'block';
         retryOverlay.style.display = 'block';
-        fadeOutAudio(bgm, () => loseSound.play());
+      }
+    
+      gameOver = true;
+      if (win) {
+        window.location.href = "http://lera-birthday.com/final";
+      } else {
+        message.textContent = 'Ты не спасла друзей!';
+        message.style.display = 'block';
+        setTimeout(() => location.reload(), 2000);
       }
     }
 
