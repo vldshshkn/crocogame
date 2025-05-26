@@ -127,7 +127,7 @@
   <img id="dedImage" src="ded.png" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; object-fit:cover; z-index:99;">
   <div id="retryOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.4); z-index:100; color:white; text-align:center; font-size:32px; padding-top:30vh;">
     Увы, ты не спасла своих друзей.<br><br>
-    <button onclick="restartGame()" style="font-size:24px; padding:10px 20px; border:none; border-radius:12px; cursor:pointer; background:#fff; color:#000;">Попробовать ещё раз</button>
+    <button onclick="location.reload()" style="font-size:24px; padding:10px 20px; border:none; border-radius:12px; cursor:pointer; background:#fff; color:#000;">Попробовать ещё раз</button>
   </div>
 
     <img id="friends" src="friends.png">
@@ -145,38 +145,6 @@
     const punchSound = document.getElementById("punchSound");
     const dedImage = document.getElementById("dedImage");
     const retryOverlay = document.getElementById("retryOverlay");
-
-    function fadeOutAudio(audio, callback) {
-      const fadeInterval = setInterval(() => {
-        if (audio.volume > 0.05) {
-          audio.volume -= 0.05;
-        } else {
-          audio.volume = 0;
-          clearInterval(fadeInterval);
-          if (callback) callback();
-        }
-      }, 100);
-    }
-
-    
-    function restartGame() {
-      // Сбросим всё перед новой попыткой
-      dedImage.style.display = "none";
-      retryOverlay.style.display = "none";
-      const waves = document.getElementById("waves");
-      waves.innerHTML = "";
-      friends.style.top = "50%";
-      friends.style.left = "50%";
-      friends.style.transform = "translate(-50%, -50%)";
-      friends.style.display = "block";
-      bgm.pause();
-      bgm.currentTime = 0;
-      bgm.volume = 1;
-      bgm.play();
-      gameOver = false;
-      startGame();
-    }
-
 
 
     document.body.addEventListener('click', () => {
@@ -241,11 +209,7 @@
           c.top > f.bottom - sh
         );
         if (overlap) {
-          if (!gameOver) {
-        // Проверка перед спавном крокодила
-          console.log('Game over triggered by crocodile');
           endGame(false);
-        }
           return;
         }
 
@@ -292,14 +256,13 @@
     function endGame(win) {
       gameOver = true;
       if (win) {
+        if (success && gameOver) {
         window.location.href = "http://lera-birthday.com/final";
+      }
       } else {
-        fadeOutAudio(bgm, () => loseSound.play());
         dedImage.style.display = 'block';
         retryOverlay.style.display = 'block';
-        
-    restartGame();
-    
+        loseSound.play();
       }
     }
 
