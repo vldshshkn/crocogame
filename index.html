@@ -147,17 +147,12 @@
 
     function createFriendWaves() {
       const wavesContainer = document.getElementById('waves');
-      const positions = [
-        { x: -70, y: 0 },
-        { x: 0, y: 0 },
-        { x: 70, y: 0 }
-      ];
-
-      positions.forEach(pos => {
+      const offsets = ['-80px', '0px', '80px'];
+      offsets.forEach(offset => {
         const wave = document.createElement('div');
         wave.className = 'friend-wave';
-        wave.style.left = `calc(50% + ${pos.x}px)`;
-        wave.style.top = `calc(50% + ${pos.y}px)`;
+        wave.style.left = 'calc(50% + ' + offset + ')';
+        wave.style.top = '50%';
         wavesContainer.appendChild(wave);
       });
     }
@@ -266,7 +261,7 @@
           return;
         }
         createCrocodile();
-      }, 1000);
+      }, 900);
     }
 
     function endGame(win) {
