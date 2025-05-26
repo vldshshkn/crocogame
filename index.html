@@ -40,105 +40,108 @@ document.body.addEventListener('click', () => {
 
 const background = new Image();
 background.src = 'background.png';
-
 const friendsImg = new Image();
 friendsImg.src = 'friends.png';
-
 const crocImg = new Image();
 crocImg.src = 'crocodile.png';
 
-const crocs = [];
-
-function spawnCrocodile() {
-  const angle = Math.random() * Math.PI * 2;
-  const dist = Math.max(canvas.width, canvas.height);
-  const cx = canvas.width / 2;
-  const cy = canvas.height / 2;
-  const x = cx + Math.cos(angle) * dist;
-  const y = cy + Math.sin(angle) * dist;
-  crocs.push({
-    x, y,
-    angle,
-    speed: 1.5 + Math.random() * 1.5,
-    dead: false,
-    splashTime: 0
-  });
+let assetsLoaded = 0;
+function checkAllLoaded() {
+  assetsLoaded++;
+  if (assetsLoaded === 3) {
+    startGame();
+  }
 }
 
-function drawSplash(x, y) {
-  ctx.beginPath();
-  ctx.arc(x, y, 20, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(255,255,255,0.5)';
-  ctx.fill();
-}
+background.onload = checkAllLoaded;
+friendsImg.onload = checkAllLoaded;
+crocImg.onload = checkAllLoaded;
 
-canvas.addEventListener('click', e => {
-  const rect = canvas.getBoundingClientRect();
-  const mx = e.clientX - rect.left;
-  const my = e.clientY - rect.top;
-  crocs.forEach(croc => {
-    if (croc.dead) return;
-    const dx = croc.x - mx;
-    const dy = croc.y - my;
-    if (Math.hypot(dx, dy) < 60) {
-      croc.dead = true;
-      croc.splashTime = 30;
-    }
-  });
-});
+function startGame() {
+  const crocs = [];
 
-function update() {
-  crocs.forEach(croc => {
-    if (!croc.dead) {
-      croc.x += Math.cos(croc.angle) * croc.speed;
-      croc.y += Math.sin(croc.angle) * croc.speed;
+  function spawnCrocodile() {
+    const angle = Math.random() * Math.PI * 2;
+    const dist = Math.max(canvas.width, canvas.height);
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    const x = cx + Math.cos(angle) * dist;
+    const y = cy + Math.sin(angle) * dist;
+    crocs.push({
+      x, y,
+      angle,
+      speed: 1.5 + Math.random() * 1.5,
+      dead: false,
+      splashTime: 0
+    });
+  }
 
-      const dx = croc.x - canvas.width / 2;
-      const dy = croc.y - canvas.height / 2;
+  function drawSplash(x, y) {
+    ctx.beginPath();
+    ctx.arc(x, y, 20, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fill();
+  }
+
+  canvas.addEventListener('click', e => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    crocs.forEach(croc => {
+      if (croc.dead) return;
+      const dx = croc.x - mx;
+      const dy = croc.y - my;
       if (Math.hypot(dx, dy) < 60) {
-        alert('Ты не спасла друзей!');
-        location.reload();
+        croc.dead = true;
+        croc.splashTime = 30;
       }
-    }
+    });
   });
-}
 
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  if (background.complete) {
+  function update() {
+    crocs.forEach(croc => {
+      if (!croc.dead) {
+        croc.x += Math.cos(croc.angle) * croc.speed;
+        croc.y += Math.sin(croc.angle) * croc.speed;
+
+        const dx = croc.x - canvas.width / 2;
+        const dy = croc.y - canvas.height / 2;
+        if (Math.hypot(dx, dy) < 60) {
+          alert('Ты не спасла друзей!');
+          location.reload();
+        }
+      }
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(friendsImg, canvas.width / 2 - 120, canvas.height / 2 - 120, 240, 240);
+
+    crocs.forEach(croc => {
+      if (!croc.dead) {
+        ctx.save();
+        ctx.translate(croc.x, croc.y);
+        ctx.rotate(croc.angle + Math.PI / 2);
+        ctx.drawImage(crocImg, -60, -60, 120, 120);
+        ctx.restore();
+      } else if (croc.splashTime > 0) {
+        drawSplash(croc.x, croc.y);
+        croc.splashTime--;
+      }
+    });
   }
 
-  if (friendsImg.complete) {
-    const fw = 240;
-    const fh = 240;
-    ctx.drawImage(friendsImg, canvas.width / 2 - fw / 2, canvas.height / 2 - fh / 2, fw, fh);
+  function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
   }
 
-  crocs.forEach(croc => {
-    if (!croc.dead) {
-      ctx.save();
-      ctx.translate(croc.x, croc.y);
-      ctx.rotate(croc.angle + Math.PI / 2);
-      ctx.drawImage(crocImg, -60, -60, 120, 120);
-      ctx.restore();
-    } else if (croc.splashTime > 0) {
-      drawSplash(croc.x, croc.y);
-      croc.splashTime--;
-    }
-  });
-}
-
-function loop() {
-  update();
-  draw();
-  requestAnimationFrame(loop);
-}
-
-background.onload = () => {
   setInterval(spawnCrocodile, 1500);
   loop();
-};
+}
 </script>
 </body>
 </html>
