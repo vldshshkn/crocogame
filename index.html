@@ -255,8 +255,8 @@
         if (Math.random() < 0.03) {
           const bubble = document.createElement('div');
           bubble.className = 'bubble';
-          bubble.style.left = (x + 40) + 'px';
-          bubble.style.top = (y + 40) + 'px';
+          bubble.style.left = (x + 60) + 'px';
+          bubble.style.top = (y + 60) + 'px';
           game.appendChild(bubble);
           setTimeout(() => bubble.remove(), 1000);
         }
@@ -280,8 +280,8 @@
 
         const splash = document.createElement('div');
         splash.className = 'splash';
-        splash.style.left = x + 'px';
-        splash.style.top = y + 'px';
+        splash.style.left = (x + 60) + 'px';
+        splash.style.top = (y + 60) + 'px';
         game.appendChild(splash);
 
         for (let i = 0; i < 8; i++) {
