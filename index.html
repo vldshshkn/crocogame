@@ -8,8 +8,8 @@
     html, body {
       margin: 0;
       padding: 0;
-      background: #000;
       overflow: hidden;
+      background: black;
     }
     canvas {
       display: block;
@@ -20,12 +20,19 @@
 <audio id="bgm" loop>
   <source src="cocodoco.mp3" type="audio/mpeg">
 </audio>
-<canvas id="gameCanvas" width="800" height="600"></canvas>
+<canvas id="gameCanvas"></canvas>
 
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const bgm = document.getElementById('bgm');
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
 
 document.body.addEventListener('click', () => {
   if (bgm.paused) bgm.play();
@@ -44,15 +51,15 @@ const crocs = [];
 
 function spawnCrocodile() {
   const angle = Math.random() * Math.PI * 2;
-  const distance = 500;
+  const dist = Math.max(canvas.width, canvas.height);
   const cx = canvas.width / 2;
   const cy = canvas.height / 2;
-  const x = cx + Math.cos(angle) * distance;
-  const y = cy + Math.sin(angle) * distance;
+  const x = cx + Math.cos(angle) * dist;
+  const y = cy + Math.sin(angle) * dist;
   crocs.push({
     x, y,
     angle,
-    speed: 1.5 + Math.random(),
+    speed: 1.5 + Math.random() * 1.5,
     dead: false,
     splashTime: 0
   });
@@ -61,7 +68,7 @@ function spawnCrocodile() {
 function drawSplash(x, y) {
   ctx.beginPath();
   ctx.arc(x, y, 20, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
   ctx.fill();
 }
 
@@ -73,7 +80,7 @@ canvas.addEventListener('click', e => {
     if (croc.dead) return;
     const dx = croc.x - mx;
     const dy = croc.y - my;
-    if (Math.hypot(dx, dy) < 50) {
+    if (Math.hypot(dx, dy) < 60) {
       croc.dead = true;
       croc.splashTime = 30;
     }
@@ -86,11 +93,10 @@ function update() {
       croc.x += Math.cos(croc.angle) * croc.speed;
       croc.y += Math.sin(croc.angle) * croc.speed;
 
-      // Проверка на касание с друзьями
       const dx = croc.x - canvas.width / 2;
       const dy = croc.y - canvas.height / 2;
-      if (Math.hypot(dx, dy) < 40) {
-        alert('Ты не спас друзей!');
+      if (Math.hypot(dx, dy) < 60) {
+        alert('Ты не спасла друзей!');
         location.reload();
       }
     }
@@ -99,8 +105,15 @@ function update() {
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  if (background.complete) ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-  if (friendsImg.complete) ctx.drawImage(friendsImg, canvas.width / 2 - 120, canvas.height / 2 - 120, 240, 240);
+  if (background.complete) {
+    ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+  }
+
+  if (friendsImg.complete) {
+    const fw = 240;
+    const fh = 240;
+    ctx.drawImage(friendsImg, canvas.width / 2 - fw / 2, canvas.height / 2 - fh / 2, fw, fh);
+  }
 
   crocs.forEach(croc => {
     if (!croc.dead) {
@@ -116,15 +129,15 @@ function draw() {
   });
 }
 
-function gameLoop() {
+function loop() {
   update();
   draw();
-  requestAnimationFrame(gameLoop);
+  requestAnimationFrame(loop);
 }
 
 background.onload = () => {
-  setInterval(spawnCrocodile, 1000);
-  gameLoop();
+  setInterval(spawnCrocodile, 1500);
+  loop();
 };
 </script>
 </body>
