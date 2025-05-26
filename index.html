@@ -226,7 +226,7 @@
       const spawn = () => {
         if (gameOver) return;
         createCrocodile();
-        setTimeout(spawn, 750);
+        setTimeout(spawn, 1500);
       };
       spawn();
       setTimeout(() => {
@@ -236,9 +236,13 @@
 
     function endGame(win) {
       gameOver = true;
-      message.textContent = win ? 'Ты спасла друзей!' : 'Ты не спасла друзей!';
-      message.style.display = 'block';
-      if (!win) setTimeout(() => location.reload(), 2000);
+      if (win) {
+        window.location.href = "http://lera-birthday.com/final";
+      } else {
+        message.textContent = 'Ты не спасла друзей!';
+        message.style.display = 'block';
+        setTimeout(() => location.reload(), 2000);
+      }
     }
 
     startGame();
