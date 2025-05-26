@@ -165,7 +165,7 @@
   </style>
 </head>
 <body>
-  <audio autoplay loop>
+  <audio id="bgm" loop style="display: none;">
     <source src="cocodoco.mp3" type="audio/mpeg">
   </audio>
   <div id="game">
@@ -243,7 +243,7 @@
 
       const speed = 1.2 + Math.random() * 1.5;
 
-      const move = setInterval(() => {
+      function moveCroc() {
         if (gameOver) {
           clearInterval(move);
           return;
@@ -271,7 +271,8 @@
           endGame(false);
           clearInterval(move);
         }
-      }, 16);
+      if (!gameOver) requestAnimationFrame(moveCroc); }
+moveCroc();
 
       croc.addEventListener('click', () => {
         croc.classList.add('fade-out');
@@ -321,6 +322,11 @@
     }
 
     createFriendWaves();
+    const bgm = document.getElementById('bgm');
+    document.body.addEventListener('click', () => {
+      if (bgm.paused) bgm.play();
+    }, { once: true });
+
     startSpawning();
 
     setTimeout(() => {
