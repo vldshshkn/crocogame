@@ -27,13 +27,13 @@
       left: 50%;
       width: 240px;
       transform: translate(-50%, -50%);
-      animation: bobbing 3s ease-in-out infinite;
       z-index: 10;
       pointer-events: none;
+      animation: bobbing 3s ease-in-out infinite;
     }
 
     @keyframes bobbing {
-      0%, 100% { transform: translate(-50%, -50%) translateY(0px); }
+      0%, 100% { transform: translate(-50%, -50%) translateY(0); }
       50% { transform: translate(-50%, -50%) translateY(8px); }
     }
 
@@ -49,39 +49,20 @@
     }
 
     @keyframes wave {
-      0% { transform: scale(0.3); opacity: 1; }
-      100% { transform: scale(2); opacity: 0; }
+      0% { transform: translate(-50%, -50%) scale(0.3); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
     }
 
     .crocodile {
-  
-      animation: sway 2s infinite ease-in-out;
-
-      position: absolute;
       width: 120px;
-      cursor: pointer;
       transition: transform 0.4s ease-out;
+      animation: sway 2s infinite ease-in-out;
+      display: block;
     }
 
-    .crocodile.fade-out {
-      animation: destroy 0.4s forwards;
-    }
-
-    @keyframes destroy {
-      0% {
-        opacity: 1;
-        transform: scale(1) rotate(0deg);
-        filter: brightness(1);
-      }
-      50% {
-        transform: scale(1.2) rotate(20deg);
-        filter: brightness(2);
-      }
-      100% {
-        opacity: 0;
-        transform: scale(0.6) rotate(-20deg);
-        filter: brightness(0.5);
-      }
+    @keyframes sway {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(2deg); }
     }
 
     .splash {
@@ -101,50 +82,19 @@
       100% { opacity: 0; transform: scale(2); }
     }
 
-    .particle {
-      position: absolute;
-      width: 6px;
-      height: 6px;
-      background: white;
-      border-radius: 50%;
-      opacity: 0.8;
-      pointer-events: none;
-      z-index: 4;
-      animation: particle-fade 0.6s forwards;
-    }
-
-    @keyframes particle-fade {
-      to {
-        opacity: 0;
-        transform: translateY(-20px) scale(0.5);
-      }
-    }
-
-    @keyframes sway {
-      0% { transform: rotate(0deg); }
-      25% { transform: rotate(-2deg); }
-      50% { transform: rotate(0deg); }
-      75% { transform: rotate(2deg); }
-      100% { transform: rotate(0deg); }
-    }
-
     .bubble {
       position: absolute;
       width: 8px;
       height: 8px;
       background: rgba(255, 255, 255, 0.6);
       border-radius: 50%;
-      pointer-events: none;
       animation: bubble-rise 1s ease-out forwards;
-      z-index: 2;
+      pointer-events: none;
+      z-index: 4;
     }
 
     @keyframes bubble-rise {
-      0% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-      100% {
+      to {
         opacity: 0;
         transform: translateY(-20px) scale(0.5);
       }
@@ -166,7 +116,7 @@
   </style>
 </head>
 <body>
-  <audio id="bgm" loop style="display: none;">
+  <audio id="bgm" loop>
     <source src="cocodoco.mp3" type="audio/mpeg">
   </audio>
   <div id="game">
@@ -178,137 +128,118 @@
   <script>
     const game = document.getElementById('game');
     const message = document.getElementById('message');
-    const gameDuration = 60000;
+    const bgm = document.getElementById('bgm');
+    const friends = document.getElementById('friends');
     let gameOver = false;
+    const gameDuration = 60000;
 
-    function createFriendWaves() {
-      const wavesContainer = document.getElementById('waves');
-      const positions = [-80, 0, 80];
-      positions.forEach(x => {
+    document.body.addEventListener('click', () => {
+      bgm.play();
+    }, { once: true });
+
+    function createWaves() {
+      const waves = document.getElementById('waves');
+      [-80, 0, 80].forEach(x => {
         const wave = document.createElement('div');
         wave.className = 'friend-wave';
         wave.style.left = '50%';
         wave.style.top = '50%';
         wave.style.transform = `translate(${x}px, -50%)`;
-        document.getElementById('waves').appendChild(wave);
+        waves.appendChild(wave);
       });
     }
 
-    
-      function createCrocodile() {
+    function createCrocodile() {
+      const wrapper = document.createElement('div');
+      wrapper.style.position = 'absolute';
+
+      const croc = document.createElement('img');
+      croc.src = 'crocodile.png';
+      croc.className = 'crocodile';
+      wrapper.appendChild(croc);
+      game.appendChild(wrapper);
+
+      const friendRect = friends.getBoundingClientRect();
+      const centerX = friendRect.left + friendRect.width / 2;
+      const centerY = friendRect.top + friendRect.height / 2;
+
+      const side = Math.floor(Math.random() * 4);
+      let x, y;
+      if (side === 0) { x = -150; y = Math.random() * window.innerHeight; }
+      else if (side === 1) { x = window.innerWidth + 150; y = Math.random() * window.innerHeight; }
+      else if (side === 2) { x = Math.random() * window.innerWidth; y = -150; }
+      else { x = Math.random() * window.innerWidth; y = window.innerHeight + 150; }
+
+      wrapper.style.left = x + 'px';
+      wrapper.style.top = y + 'px';
+
+      const dx = centerX - x;
+      const dy = centerY - y;
+      const angle = Math.atan2(dy, dx);
+      wrapper.style.transform = `rotate(${angle * 180 / Math.PI - 90}deg)`;
+
+      const speed = 1.8;
+
+      function move() {
         if (gameOver) return;
+        x += Math.cos(angle) * speed;
+        y += Math.sin(angle) * speed;
+        wrapper.style.left = x + 'px';
+        wrapper.style.top = y + 'px';
 
-        const crocWrapper = document.createElement('div');
-        crocWrapper.style.position = 'absolute';
-
-        const croc = document.createElement('img');
-        croc.src = 'crocodile.png';
-        croc.alt = 'croc';
-        croc.style.display = 'block';
-        croc.style.opacity = '1';
-        croc.style.transform = 'none';
-        croc.className = 'crocodile';
-
-        crocWrapper.appendChild(croc);
-        game.appendChild(crocWrapper);
-
-        const friends = document.getElementById('friends');
-        const rect = friends.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-
-        const side = Math.floor(Math.random() * 4);
-        let x, y;
-        if (side === 0) { x = -150; y = Math.random() * window.innerHeight; }
-        else if (side === 1) { x = window.innerWidth + 150; y = Math.random() * window.innerHeight; }
-        else if (side === 2) { x = Math.random() * window.innerWidth; y = -150; }
-        else { x = Math.random() * window.innerWidth; y = window.innerHeight + 150; }
-
-        crocWrapper.style.left = x + 'px';
-        crocWrapper.style.top = y + 'px';
-
-        const dx = centerX - x;
-        const dy = centerY - y;
-        const angleRad = Math.atan2(dy, dx);
-        const angleDeg = angleRad * 180 / Math.PI;
-
-        crocWrapper.style.transform = `rotate(${angleDeg - 90}deg)`;
-
-        const speed = 1.2 + Math.random() * 1.5;
-
-        function moveCroc() {
-          if (gameOver) return;
-
-          x += Math.cos(angleRad) * speed;
-          y += Math.sin(angleRad) * speed;
-          crocWrapper.style.left = x + 'px';
-          crocWrapper.style.top = y + 'px';
-
-          
-        const friendBox = friends.getBoundingClientRect();
-        const crocBox = crocWrapper.getBoundingClientRect();
-        const overlap =
-          crocBox.left < friendBox.right &&
-          crocBox.right > friendBox.left &&
-          crocBox.top < friendBox.bottom &&
-          crocBox.bottom > friendBox.top;
+        const fRect = friends.getBoundingClientRect();
+        const cRect = wrapper.getBoundingClientRect();
+        const overlap = !(cRect.right < fRect.left || cRect.left > fRect.right || cRect.bottom < fRect.top || cRect.top > fRect.bottom);
         if (overlap) {
           endGame(false);
           return;
         }
 
-          }
-
-          // пузырь
-          if (Math.random() < 0.03) {
-            const bubble = document.createElement('div');
-            bubble.className = 'bubble';
-            const bb = crocWrapper.getBoundingClientRect();
-            bubble.style.left = (bb.left + bb.width / 2) + 'px';
-            bubble.style.top = (bb.top + bb.height / 2) + 'px';
-            game.appendChild(bubble);
-            setTimeout(() => bubble.remove(), 1000);
-          }
-
-          requestAnimationFrame(moveCroc);
+        if (Math.random() < 0.02) {
+          const b = document.createElement('div');
+          b.className = 'bubble';
+          b.style.left = (cRect.left + cRect.width / 2) + 'px';
+          b.style.top = (cRect.top + cRect.height / 2) + 'px';
+          game.appendChild(b);
+          setTimeout(() => b.remove(), 1000);
         }
 
-        moveCroc();
-
-        croc.addEventListener('click', () => {
-          croc.classList.add('fade-out');
-          const splash = document.createElement('div');
-          splash.className = 'splash';
-          const box = crocWrapper.getBoundingClientRect();
-          splash.style.left = (box.left + box.width / 2) + 'px';
-          splash.style.top = (box.top + box.height / 2) + 'px';
-          game.appendChild(splash);
-
-          setTimeout(() => {
-            crocWrapper.remove();
-            splash.remove();
-          }, 500);
-        });
+        requestAnimationFrame(move);
       }
+      move();
 
+      croc.addEventListener('click', () => {
+        const splash = document.createElement('div');
+        splash.className = 'splash';
+        const box = wrapper.getBoundingClientRect();
+        splash.style.left = (box.left + box.width / 2) + 'px';
+        splash.style.top = (box.top + box.height / 2) + 'px';
+        game.appendChild(splash);
+        wrapper.remove();
+        setTimeout(() => splash.remove(), 400);
+      });
+    }
 
-      function endGame(win) {
+    function startGame() {
+      createWaves();
+      const spawn = () => {
+        if (gameOver) return;
+        createCrocodile();
+        setTimeout(spawn, 750);
+      };
+      spawn();
+      setTimeout(() => {
+        if (!gameOver) endGame(true);
+      }, gameDuration);
+    }
+
+    function endGame(win) {
       gameOver = true;
       message.textContent = win ? 'Ты спасла друзей!' : 'Ты не спас друзей';
       message.style.display = 'block';
     }
 
-    createFriendWaves();
-    const bgm = document.getElementById('bgm');
-    document.body.addEventListener('click', () => {
-      if (bgm.paused) bgm.play();
-    }, { once: true });
-
-    startSpawning();
-
-    setTimeout(() => {
-      if (!gameOver) endGame(true);
-    }, gameDuration);
+    startGame();
   </script>
 </body>
 </html>
