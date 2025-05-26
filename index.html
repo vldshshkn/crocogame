@@ -193,9 +193,14 @@
     function createCrocodile() {
       if (gameOver) return;
 
+      const crocWrapper = document.createElement('div');
+      crocWrapper.style.position = 'absolute';
+
       const croc = document.createElement('img');
       croc.src = 'crocodile.png';
       croc.className = 'crocodile';
+
+      crocWrapper.appendChild(croc);
 
       
       const side = Math.floor(Math.random() * 4); // 0 - left, 1 - right, 2 - top, 3 - bottom
@@ -215,9 +220,9 @@
       }
     
 
-      croc.style.left = startX + 'px';
-      croc.style.top = startY + 'px';
-      game.appendChild(croc);
+      crocWrapper.style.left = startX + 'px';
+      crocWrapper.style.top = startY + 'px';
+      game.appendChild(crocWrapper);
 
       const friends = document.getElementById('friends');
       const rect = friends.getBoundingClientRect();
@@ -231,7 +236,7 @@
       const angleRad = Math.atan2(dy, dx);
       const angleDeg = angleRad * 180 / Math.PI;
 
-      croc.style.transform = `rotate(${angleDeg - 90}deg)`;
+      crocWrapper.style.transform = `rotate(${angleDeg - 90}deg)`;
 
       const speed = 1.2 + Math.random() * 1.5;
 
@@ -243,8 +248,8 @@
 
         x += Math.cos(angleRad) * speed;
         y += Math.sin(angleRad) * speed;
-        croc.style.left = x + 'px';
-        croc.style.top = y + 'px';
+        crocWrapper.style.left = x + 'px';
+        crocWrapper.style.top = y + 'px';
 
         // пузырьки с шансом
         if (Math.random() < 0.03) {
@@ -270,6 +275,7 @@
 
       croc.addEventListener('click', () => {
         croc.classList.add('fade-out');
+        crocWrapper.style.pointerEvents = 'none';
         clearInterval(move);
 
         const splash = document.createElement('div');
