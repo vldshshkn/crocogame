@@ -68,7 +68,26 @@
     .end-screen.active {
       display: flex;
     }
-  </style>
+  
+    .splash {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      margin-left: -25px;
+      margin-top: -25px;
+      background: radial-gradient(circle, white 0%, transparent 70%);
+      animation: splash 0.4s ease-out;
+      pointer-events: none;
+    }
+    @keyframes splash {
+      0% { transform: scale(0.2); opacity: 1; }
+      100% { transform: scale(1.5); opacity: 0; }
+    }
+    </style>
+
+<audio id="bgm" loop>
+  <source src="cocodoco.mp3" type="audio/mpeg">
+</audio>
 </head>
 <body>
 <div class="friend"></div>
@@ -91,6 +110,17 @@ function spawnCroc() {
   const croc = document.createElement('div');
   croc.className = 'croc';
   document.body.appendChild(croc);
+  croc.onclick = (e) => {
+    e.stopPropagation();
+    const r = croc.getBoundingClientRect();
+    const splash = document.createElement('div');
+    splash.className = 'splash';
+    splash.style.left = (r.left + r.width / 2) + 'px';
+    splash.style.top = (r.top + r.height / 2) + 'px';
+    document.body.appendChild(splash);
+    croc.remove();
+    setTimeout(() => splash.remove(), 400);
+  };
 
   const edge = Math.floor(Math.random() * 4);
   let x, y;
@@ -176,6 +206,10 @@ function startGame() {
 
 endScreen.addEventListener("click", () => startGame());
 
+document.body.addEventListener("click", () => {
+  const bgm = document.getElementById("bgm");
+  if (bgm.paused) bgm.play();
+}, { once: true });
 startGame();
 </script>
 </body>
