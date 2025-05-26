@@ -146,6 +146,19 @@
     const dedImage = document.getElementById("dedImage");
     const retryOverlay = document.getElementById("retryOverlay");
 
+    function fadeOutAudio(audio, callback) {
+      const fadeInterval = setInterval(() => {
+        if (audio.volume > 0.05) {
+          audio.volume -= 0.05;
+        } else {
+          audio.volume = 0;
+          clearInterval(fadeInterval);
+          if (callback) callback();
+        }
+      }, 100);
+    }
+
+
 
     document.body.addEventListener('click', () => {
       bgm.play();
@@ -262,7 +275,7 @@
       } else {
         dedImage.style.display = 'block';
         retryOverlay.style.display = 'block';
-        loseSound.play();
+        fadeOutAudio(bgm, () => loseSound.play());
       }
     }
 
