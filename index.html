@@ -117,7 +117,19 @@
     <source src="cocodoco.mp3" type="audio/mpeg">
   </audio>
   <div id="game">
-    <div id="waves"></div>
+    <div id="waves">
+  <audio id="loseSound">
+    <source src="whenloose.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="punchSound">
+    <source src="punch.wav" type="audio/wav">
+  </audio>
+  <img id="dedImage" src="ded.png" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; object-fit:cover; z-index:99;">
+  <div id="retryOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); z-index:100; color:white; text-align:center; font-size:32px; padding-top:30vh;">
+    Увы, ты не спасла своих друзей.<br><br>
+    <button onclick="restartGame()" style="font-size:24px; padding:10px 20px; border:none; border-radius:12px; cursor:pointer; background:#fff; color:#000;">Попробовать ещё раз</button>
+  </div>
+
     <img id="friends" src="friends.png">
     <div id="message"></div>
   </div>
@@ -128,6 +140,7 @@
     const friends = document.getElementById('friends');
     const bgm = document.getElementById('bgm');
     let gameOver = false;
+
     const loseSound = document.getElementById("loseSound");
     const punchSound = document.getElementById("punchSound");
     const dedImage = document.getElementById("dedImage");
@@ -266,28 +279,9 @@
         retryOverlay.style.display = 'block';
         document.body.onclick = restartGame;
       }
-
-      } else {
-        message.textContent = 'Ты не спасла друзей!';
-        message.style.display = 'block';
-        setTimeout(() => location.reload(), 2000);
-      }
     }
 
     startGame();
   </script>
-
-  <audio id="loseSound">
-    <source src="whenloose.mp3" type="audio/mpeg">
-  </audio>
-  <audio id="punchSound">
-    <source src="punch.wav" type="audio/wav">
-  </audio>
-  <img id="dedImage" src="ded.png" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; object-fit:cover; z-index:99;">
-  <div id="retryOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); z-index:100; color:white; text-align:center; font-size:32px; padding-top:30vh;">
-    Увы, ты не спасла своих друзей.<br><br>
-    <button onclick="restartGame()" style="font-size:24px; padding:10px 20px; border:none; border-radius:12px; cursor:pointer; background:#fff; color:#000;">Попробовать ещё раз</button>
-  </div>
-
 </body>
 </html>
