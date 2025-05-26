@@ -25,7 +25,7 @@
       position: absolute;
       top: 50%;
       left: 50%;
-      width: 200px;
+      width: 240px;
       transform: translate(-50%, -50%);
       animation: bobbing 3s ease-in-out infinite;
       z-index: 10;
@@ -33,44 +33,28 @@
 
     @keyframes bobbing {
       0%, 100% { transform: translate(-50%, -50%) translateY(0px); }
-      50% { transform: translate(-50%, -50%) translateY(10px); }
+      50% { transform: translate(-50%, -50%) translateY(8px); }
     }
 
     .crocodile {
       position: absolute;
-      width: 100px;
-      transition: transform 0.1s linear;
-      animation: zigzag 2s infinite linear;
+      width: 120px;
       cursor: pointer;
+      transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+      animation: zigzag 2s infinite linear;
     }
 
     @keyframes zigzag {
-      0% { transform: translateX(0); }
-      25% { transform: translateX(10px); }
-      50% { transform: translateX(0); }
-      75% { transform: translateX(-10px); }
-      100% { transform: translateX(0); }
+      0% { transform: translateY(0); }
+      25% { transform: translateY(6px); }
+      50% { transform: translateY(0); }
+      75% { transform: translateY(-6px); }
+      100% { transform: translateY(0); }
     }
 
-    .wave {
-      position: absolute;
-      width: 200px;
-      height: 200px;
-      border-radius: 50%;
-      border: 2px solid rgba(255,255,255,0.4);
-      animation: wave 2s linear infinite;
-      z-index: 0;
-    }
-
-    @keyframes wave {
-      0% {
-        transform: scale(0.5);
-        opacity: 1;
-      }
-      100% {
-        transform: scale(2);
-        opacity: 0;
-      }
+    .fade-out {
+      opacity: 0;
+      transform: scale(1.5);
     }
 
     #message {
@@ -91,14 +75,13 @@
 <body>
   <div id="game">
     <img id="friends" src="friends.png" />
-    <div class="wave" style="top:50%; left:50%; transform:translate(-50%,-50%);"></div>
     <div id="message"></div>
   </div>
 
   <script>
     const game = document.getElementById('game');
     const message = document.getElementById('message');
-    const gameDuration = 120000; // 2 минуты
+    const gameDuration = 60000; // 1 минута
     let gameOver = false;
 
     function createCrocodile() {
@@ -108,33 +91,28 @@
       croc.src = 'crocodile.png';
       croc.className = 'crocodile';
 
-      const size = 80 + Math.random() * 40;
-      croc.style.width = size + 'px';
-
-      const side = Math.random() < 0.5 ? 'left' : 'right';
+      const startX = Math.random() < 0.5 ? -150 : window.innerWidth + 150;
       const startY = Math.random() * window.innerHeight;
+
+      croc.style.left = startX + 'px';
+      croc.style.top = startY + 'px';
+      game.appendChild(croc);
+
       const friends = document.getElementById('friends');
       const rect = friends.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
 
-      if (side === 'left') {
-        croc.style.left = '-100px';
-      } else {
-        croc.style.left = (window.innerWidth + 100) + 'px';
-      }
+      let x = startX;
+      let y = startY;
+      const dx = centerX - x;
+      const dy = centerY - y;
+      const angleRad = Math.atan2(dy, dx);
+      const angleDeg = angleRad * 180 / Math.PI;
 
-      croc.style.top = startY + 'px';
+      croc.style.transform = `rotate(${angleDeg}deg)`;
 
-      game.appendChild(croc);
-
-      const dx = centerX - croc.offsetLeft;
-      const dy = centerY - croc.offsetTop;
-      const angle = Math.atan2(dy, dx);
-
-      let x = croc.offsetLeft;
-      let y = croc.offsetTop;
-      const speed = 1 + Math.random() * 1.5;
+      const speed = 2 + Math.random() * 2.5;
 
       const move = setInterval(() => {
         if (gameOver) {
@@ -142,22 +120,27 @@
           return;
         }
 
-        x += Math.cos(angle) * speed;
-        y += Math.sin(angle) * speed;
+        x += Math.cos(angleRad) * speed;
+        y += Math.sin(angleRad) * speed;
         croc.style.left = x + 'px';
         croc.style.top = y + 'px';
 
         const rectCroc = croc.getBoundingClientRect();
-        if (rectCroc.left < centerX + 30 && rectCroc.left > centerX - 30 &&
-            rectCroc.top < centerY + 30 && rectCroc.top > centerY - 30) {
+        if (
+          rectCroc.left < centerX + 30 &&
+          rectCroc.left > centerX - 30 &&
+          rectCroc.top < centerY + 30 &&
+          rectCroc.top > centerY - 30
+        ) {
           endGame(false);
           clearInterval(move);
         }
       }, 16);
 
       croc.addEventListener('click', () => {
-        croc.remove();
+        croc.classList.add('fade-out');
         clearInterval(move);
+        setTimeout(() => croc.remove(), 300);
       });
     }
 
@@ -168,7 +151,7 @@
           return;
         }
         createCrocodile();
-      }, 800);
+      }, 500);
     }
 
     function endGame(win) {
@@ -177,13 +160,10 @@
       message.style.display = 'block';
     }
 
-    // Старт игры
     startSpawning();
 
     setTimeout(() => {
-      if (!gameOver) {
-        endGame(true);
-      }
+      if (!gameOver) endGame(true);
     }, gameDuration);
   </script>
 </body>
