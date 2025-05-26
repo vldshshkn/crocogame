@@ -29,11 +29,28 @@
       transform: translate(-50%, -50%);
       animation: bobbing 3s ease-in-out infinite;
       z-index: 10;
+      pointer-events: none;
     }
 
     @keyframes bobbing {
       0%, 100% { transform: translate(-50%, -50%) translateY(0px); }
       50% { transform: translate(-50%, -50%) translateY(8px); }
+    }
+
+    .friend-wave {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      animation: wave 3s ease-out infinite;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    @keyframes wave {
+      0% { transform: scale(0.3); opacity: 1; }
+      100% { transform: scale(2); opacity: 0; }
     }
 
     .crocodile {
@@ -64,6 +81,42 @@
       }
     }
 
+    .splash {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      animation: splash 0.5s ease-out forwards;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    @keyframes splash {
+      0% { opacity: 1; transform: scale(0.2); }
+      100% { opacity: 0; transform: scale(2); }
+    }
+
+    .particle {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: white;
+      border-radius: 50%;
+      opacity: 0.8;
+      pointer-events: none;
+      z-index: 4;
+      animation: particle-fade 0.6s forwards;
+    }
+
+    @keyframes particle-fade {
+      to {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.5);
+      }
+    }
+
     #message {
       position: absolute;
       top: 40%;
@@ -81,6 +134,7 @@
 </head>
 <body>
   <div id="game">
+    <div id="waves"></div>
     <img id="friends" src="friends.png" />
     <div id="message"></div>
   </div>
@@ -88,8 +142,25 @@
   <script>
     const game = document.getElementById('game');
     const message = document.getElementById('message');
-    const gameDuration = 60000; // 1 минута
+    const gameDuration = 60000;
     let gameOver = false;
+
+    function createFriendWaves() {
+      const wavesContainer = document.getElementById('waves');
+      const positions = [
+        { x: -70, y: 0 },
+        { x: 0, y: 0 },
+        { x: 70, y: 0 }
+      ];
+
+      positions.forEach(pos => {
+        const wave = document.createElement('div');
+        wave.className = 'friend-wave';
+        wave.style.left = `calc(50% + ${pos.x}px)`;
+        wave.style.top = `calc(50% + ${pos.y}px)`;
+        wavesContainer.appendChild(wave);
+      });
+    }
 
     function createCrocodile() {
       if (gameOver) return;
@@ -98,8 +169,23 @@
       croc.src = 'crocodile.png';
       croc.className = 'crocodile';
 
-      const startX = Math.random() < 0.5 ? -150 : window.innerWidth + 150;
-      const startY = Math.random() * window.innerHeight;
+      
+      const side = Math.floor(Math.random() * 4); // 0 - left, 1 - right, 2 - top, 3 - bottom
+      let startX, startY;
+      if (side === 0) {
+        startX = -150;
+        startY = Math.random() * window.innerHeight;
+      } else if (side === 1) {
+        startX = window.innerWidth + 150;
+        startY = Math.random() * window.innerHeight;
+      } else if (side === 2) {
+        startX = Math.random() * window.innerWidth;
+        startY = -150;
+      } else {
+        startX = Math.random() * window.innerWidth;
+        startY = window.innerHeight + 150;
+      }
+    
 
       croc.style.left = startX + 'px';
       croc.style.top = startY + 'px';
@@ -117,7 +203,6 @@
       const angleRad = Math.atan2(dy, dx);
       const angleDeg = angleRad * 180 / Math.PI;
 
-      // Учитываем, что крокодил на PNG смотрит вниз, т.е. базовый угол = 90
       croc.style.transform = `rotate(${angleDeg - 90}deg)`;
 
       const speed = 1.2 + Math.random() * 1.5;
@@ -148,7 +233,29 @@
       croc.addEventListener('click', () => {
         croc.classList.add('fade-out');
         clearInterval(move);
-        setTimeout(() => croc.remove(), 400);
+
+        const splash = document.createElement('div');
+        splash.className = 'splash';
+        splash.style.left = x + 'px';
+        splash.style.top = y + 'px';
+        game.appendChild(splash);
+
+        for (let i = 0; i < 8; i++) {
+          const particle = document.createElement('div');
+          particle.className = 'particle';
+          const offsetX = Math.random() * 60 - 30;
+          const offsetY = Math.random() * 60 - 30;
+          particle.style.left = (x + offsetX) + 'px';
+          particle.style.top = (y + offsetY) + 'px';
+          game.appendChild(particle);
+
+          setTimeout(() => particle.remove(), 600);
+        }
+
+        setTimeout(() => {
+          croc.remove();
+          splash.remove();
+        }, 500);
       });
     }
 
@@ -159,7 +266,7 @@
           return;
         }
         createCrocodile();
-      }, 1000); // лёгкий режим
+      }, 1000);
     }
 
     function endGame(win) {
@@ -168,6 +275,7 @@
       message.style.display = 'block';
     }
 
+    createFriendWaves();
     startSpawning();
 
     setTimeout(() => {
