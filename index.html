@@ -189,7 +189,21 @@
 
         const fRect = friends.getBoundingClientRect();
         const cRect = wrapper.getBoundingClientRect();
-        const overlap = !(cRect.right < fRect.left || cRect.left > fRect.right || cRect.bottom < fRect.top || cRect.top > fRect.bottom);
+        
+        const shrink = 0.2;
+        const shrinkW = fRect.width * shrink / 2;
+        const shrinkH = fRect.height * shrink / 2;
+        const fx1 = fRect.left + shrinkW;
+        const fx2 = fRect.right - shrinkW;
+        const fy1 = fRect.top + shrinkH;
+        const fy2 = fRect.bottom - shrinkH;
+        const overlap = !(
+          cRect.right < fx1 ||
+          cRect.left > fx2 ||
+          cRect.bottom < fy1 ||
+          cRect.top > fy2
+        ) || false;
+cRect.right < fRect.left || cRect.left > fRect.right || cRect.bottom < fRect.top || cRect.top > fRect.bottom);
         if (overlap) {
           endGame(false);
           return;
@@ -211,9 +225,9 @@
       croc.addEventListener('click', () => {
         const splash = document.createElement('div');
         splash.className = 'splash';
-        const box = wrapper.getBoundingClientRect();
-        splash.style.left = (box.left + box.width / 2) + 'px';
-        splash.style.top = (box.top + box.height / 2) + 'px';
+        const rect = wrapper.getBoundingClientRect();
+        splash.style.left = (rect.left + rect.width / 2) + 'px';
+        splash.style.top = (rect.top + rect.height / 2) + 'px';
         game.appendChild(splash);
         wrapper.remove();
         setTimeout(() => splash.remove(), 400);
@@ -235,7 +249,8 @@
 
     function endGame(win) {
       gameOver = true;
-      message.textContent = win ? 'Ты спасла друзей!' : 'Ты не спас друзей';
+      message.textContent = win ? 'Ты спасла друзей!' : 'Ты не спасла друзей!';
+      if (!win) setTimeout(() => location.reload(), 2000);
       message.style.display = 'block';
     }
 
