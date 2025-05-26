@@ -3,220 +3,245 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Крокодилы</title>
+  <title>Спаси друзей</title>
   <style>
     html, body {
       margin: 0;
       padding: 0;
+      height: 100%;
       overflow: hidden;
-    }
-    body {
-      background: url('background.png') no-repeat center center fixed;
+      background: url('background.png') no-repeat center center;
       background-size: cover;
     }
-    .friend {
+
+    #game {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #friends {
       position: absolute;
+      top: 50%;
+      left: 50%;
       width: 240px;
-      height: 240px;
-      background: url('friends.png') no-repeat center center / contain;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) rotate(0deg);
-      animation: bob 2s infinite ease-in-out;
-    }
-    @keyframes bob {
-      0%, 100% { transform: translate(-50%, -50%) translateY(0); }
-      50% { transform: translate(-50%, -50%) translateY(-5px); }
-    }
-    .croc {
-      position: absolute;
-      width: 120px;
-      height: 120px;
-      background: url('crocodile.png') no-repeat center center / contain;
-      transition: transform 0.1s linear;
-    }
-    .wave {
-      position: absolute;
-      border: 2px solid rgba(255,255,255,0.4);
-      border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      left: 50%;
-      top: 50%;
       transform: translate(-50%, -50%);
-      animation: ripple 2s ease-out infinite;
       pointer-events: none;
+      z-index: 10;
+      animation: bobbing 3s infinite ease-in-out;
     }
-    @keyframes ripple {
-      0% { width: 0; height: 0; opacity: 0.5; }
-      100% { width: 300px; height: 300px; opacity: 0; }
+
+    @keyframes bobbing {
+      0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+      50% { transform: translate(-50%, -50%) translateY(8px); }
     }
-    .end-screen {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.75);
-      color: white;
-      font-size: 48px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      z-index: 1000;
-      display: none;
+
+    .friend-wave {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.3);
+      animation: wave 3s ease-out infinite;
+      pointer-events: none;
+      z-index: 1;
+      transform: translate(-50%, -50%);
     }
-    .end-screen.active {
-      display: flex;
+
+    @keyframes wave {
+      0% { transform: translate(-50%, -50%) scale(0.3); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
     }
-  
+
+    .crocodile {
+      width: 120px;
+      animation: sway 2s infinite ease-in-out;
+      display: block;
+    }
+
+    @keyframes sway {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(2deg); }
+    }
+
+    .bubble {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: white;
+      border-radius: 50%;
+      animation: bubble-rise 1s ease-out forwards;
+      z-index: 4;
+    }
+
+    @keyframes bubble-rise {
+      to {
+        transform: translateY(-20px) scale(0.5);
+        opacity: 0;
+      }
+    }
+
     .splash {
       position: absolute;
-      width: 50px;
-      height: 50px;
-      margin-left: -25px;
-      margin-top: -25px;
-      background: radial-gradient(circle, white 0%, transparent 70%);
-      animation: splash 0.4s ease-out;
-      pointer-events: none;
+      width: 60px;
+      height: 60px;
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      animation: splash 0.5s ease-out forwards;
+      z-index: 5;
     }
+
     @keyframes splash {
       0% { transform: scale(0.2); opacity: 1; }
-      100% { transform: scale(1.5); opacity: 0; }
+      100% { transform: scale(2); opacity: 0; }
     }
-    </style>
 
-<audio id="bgm" loop>
-  <source src="cocodoco.mp3" type="audio/mpeg">
-</audio>
+    #message {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 36px;
+      color: white;
+      background: rgba(0,0,0,0.6);
+      padding: 20px 40px;
+      border-radius: 20px;
+      display: none;
+      z-index: 100;
+    }
+  </style>
 </head>
 <body>
-<div class="friend"></div>
-<div class="wave"></div>
-<div class="end-screen" id="endScreen">
-  <div id="endMessage">Ты не спасла друзей.</div>
-  <div style="font-size: 24px;">Ещё раз? Да / Нет</div>
-</div>
-<script>
-const friend = document.querySelector('.friend');
-const endScreen = document.getElementById('endScreen');
-const endMessage = document.getElementById('endMessage');
+  <audio id="bgm" loop>
+    <source src="cocodoco.mp3" type="audio/mpeg">
+  </audio>
+  <div id="game">
+    <div id="waves"></div>
+    <img id="friends" src="friends.png">
+    <div id="message"></div>
+  </div>
 
-const CROCS = [];
-const SPAWN_INTERVAL = 1500;
-const GAME_DURATION = 60000;
-let gameEnded = false;
+  <script>
+    const game = document.getElementById('game');
+    const message = document.getElementById('message');
+    const friends = document.getElementById('friends');
+    const bgm = document.getElementById('bgm');
+    let gameOver = false;
 
-function spawnCroc() {
-  const croc = document.createElement('div');
-  croc.className = 'croc';
-  document.body.appendChild(croc);
-  croc.onclick = (e) => {
-    e.stopPropagation();
-    const r = croc.getBoundingClientRect();
-    const splash = document.createElement('div');
-    splash.className = 'splash';
-    splash.style.left = (r.left + r.width / 2) + 'px';
-    splash.style.top = (r.top + r.height / 2) + 'px';
-    document.body.appendChild(splash);
-    croc.remove();
-    setTimeout(() => splash.remove(), 400);
-  };
+    document.body.addEventListener('click', () => {
+      bgm.play();
+    }, { once: true });
 
-  const edge = Math.floor(Math.random() * 4);
-  let x, y;
-  if (edge === 0) { x = -100; y = Math.random() * window.innerHeight; } // left
-  else if (edge === 1) { x = window.innerWidth + 100; y = Math.random() * window.innerHeight; } // right
-  else if (edge === 2) { x = Math.random() * window.innerWidth; y = -100; } // top
-  else { x = Math.random() * window.innerWidth; y = window.innerHeight + 100; } // bottom
-
-  const cx = window.innerWidth / 2;
-  const cy = window.innerHeight / 2;
-  const angle = Math.atan2(cy - y, cx - x);
-  croc.style.left = x + 'px';
-  croc.style.top = y + 'px';
-  croc.dataset.angle = angle;
-  croc.dataset.x = x;
-  croc.dataset.y = y;
-  croc.dataset.speed = 1 + Math.random() * 1.2;
-
-  CROCS.push(croc);
-}
-
-function update() {
-  if (gameEnded) return;
-  const rect = friend.getBoundingClientRect();
-  const fx = rect.left + rect.width / 2;
-  const fy = rect.top + rect.height / 2;
-
-  CROCS.forEach((croc, index) => {
-    let x = parseFloat(croc.dataset.x);
-    let y = parseFloat(croc.dataset.y);
-    const speed = parseFloat(croc.dataset.speed);
-    const angle = parseFloat(croc.dataset.angle);
-
-    x += Math.cos(angle) * speed;
-    y += Math.sin(angle) * speed;
-
-    croc.dataset.x = x;
-    croc.dataset.y = y;
-
-    croc.style.left = x + 'px';
-    croc.style.top = y + 'px';
-    croc.style.transform = `rotate(${angle + Math.PI}rad)`;
-
-    // Проверка по центру крокодила, не углам
-    const cx = x + 60;
-    const cy = y + 60;
-    if (
-      cx > rect.left &&
-      cx < rect.right &&
-      cy > rect.top &&
-      cy < rect.bottom &&
-      !gameEnded
-    ) {
-      endMessage.textContent = "Ты не спасла друзей.";
-      endScreen.classList.add("active");
-      gameEnded = true;
+    function createFriendWaves() {
+      const waves = document.getElementById('waves');
+      [-80, 0, 80].forEach(offset => {
+        const w = document.createElement('div');
+        w.className = 'friend-wave';
+        w.style.left = 'calc(50% + ' + offset + 'px)';
+        w.style.top = '50%';
+        waves.appendChild(w);
+      });
     }
-  });
 
-  requestAnimationFrame(update);
-}
+    function createCrocodile() {
+      const wrapper = document.createElement('div');
+      wrapper.style.position = 'absolute';
 
-function startGame() {
-  // очистим всех кроков
-  CROCS.forEach(c => c.remove());
-  CROCS.length = 0;
-  gameEnded = false;
-  endScreen.classList.remove("active");
-  gameEnded = false;
-  endScreen.classList.remove("active");
-  CROCS.forEach(c => c.remove());
-  CROCS.length = 0;
+      const croc = document.createElement('img');
+      croc.src = 'crocodile.png';
+      croc.className = 'crocodile';
+      wrapper.appendChild(croc);
+      game.appendChild(wrapper);
 
-  let spawn = setInterval(() => {
-    if (gameEnded) return clearInterval(spawn);
-    spawnCroc();
-  }, SPAWN_INTERVAL);
+      const side = Math.floor(Math.random() * 4);
+      let x, y;
+      if (side === 0) { x = -150; y = Math.random() * window.innerHeight; }
+      else if (side === 1) { x = window.innerWidth + 150; y = Math.random() * window.innerHeight; }
+      else if (side === 2) { x = Math.random() * window.innerWidth; y = -150; }
+      else { x = Math.random() * window.innerWidth; y = window.innerHeight + 150; }
 
-  update();
+      wrapper.style.left = x + 'px';
+      wrapper.style.top = y + 'px';
 
-  setTimeout(() => {
-    if (!gameEnded) {
-      window.location.href = "http://lera-birthday.com/final";
+      const rect = friends.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const angle = Math.atan2(centerY - y, centerX - x);
+      wrapper.style.transform = `rotate(${angle * 180 / Math.PI - 90}deg)`;
+
+      const speed = 1.8;
+
+      function move() {
+        if (gameOver) return;
+        x += Math.cos(angle) * speed;
+        y += Math.sin(angle) * speed;
+        wrapper.style.left = x + 'px';
+        wrapper.style.top = y + 'px';
+
+        const f = friends.getBoundingClientRect();
+        const c = wrapper.getBoundingClientRect();
+        const shrink = 0.2;
+        const sw = f.width * shrink / 2;
+        const sh = f.height * shrink / 2;
+        const overlap = !(
+          c.right < f.left + sw ||
+          c.left > f.right - sw ||
+          c.bottom < f.top + sh ||
+          c.top > f.bottom - sh
+        );
+        if (overlap) {
+          endGame(false);
+          return;
+        }
+
+        if (Math.random() < 0.03) {
+          const b = document.createElement('div');
+          b.className = 'bubble';
+          b.style.left = (c.left + c.width / 2) + 'px';
+          b.style.top = (c.top + c.height / 2) + 'px';
+          game.appendChild(b);
+          setTimeout(() => b.remove(), 1000);
+        }
+
+        requestAnimationFrame(move);
+      }
+
+      move();
+
+      croc.addEventListener('click', () => {
+        const splash = document.createElement('div');
+        splash.className = 'splash';
+        const r = wrapper.getBoundingClientRect();
+        splash.style.left = (r.left + r.width / 2) + 'px';
+        splash.style.top = (r.top + r.height / 2) + 'px';
+        game.appendChild(splash);
+        wrapper.remove();
+        setTimeout(() => splash.remove(), 400);
+      });
     }
-      gameEnded = true;
+
+    function startGame() {
+      createFriendWaves();
+      const spawn = () => {
+        if (gameOver) return;
+        createCrocodile();
+        setTimeout(spawn, 750);
+      };
+      spawn();
+      setTimeout(() => {
+        if (!gameOver) endGame(true);
+      }, 60000);
     }
-  }, GAME_DURATION);
-}
 
-endScreen.addEventListener("click", () => startGame());
+    function endGame(win) {
+      gameOver = true;
+      message.textContent = win ? 'Ты спасла друзей!' : 'Ты не спасла друзей!';
+      message.style.display = 'block';
+      if (!win) setTimeout(() => location.reload(), 2000);
+    }
 
-document.body.addEventListener("click", () => {
-  const bgm = document.getElementById("bgm");
-  if (bgm.paused) bgm.play();
-}, { once: true });
-startGame();
-</script>
+    startGame();
+  </script>
 </body>
 </html>
