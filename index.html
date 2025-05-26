@@ -225,9 +225,9 @@ cRect.right < fRect.left || cRect.left > fRect.right || cRect.bottom < fRect.top
       croc.addEventListener('click', () => {
         const splash = document.createElement('div');
         splash.className = 'splash';
-        const r = wrapper.getBoundingClientRect();
-        splash.style.left = (r.left + r.width / 2) + 'px';
-        splash.style.top = (r.top + r.height / 2) + 'px';
+        const box = wrapper.getBoundingClientRect();
+        splash.style.left = (rect.left + rect.width / 2) + 'px';
+        splash.style.top = (rect.top + rect.height / 2) + 'px';
         game.appendChild(splash);
         wrapper.remove();
         setTimeout(() => splash.remove(), 400);
