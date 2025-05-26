@@ -165,6 +165,9 @@
   </style>
 </head>
 <body>
+  <audio autoplay loop>
+    <source src="cocodoco.mp3" type="audio/mpeg">
+  </audio>
   <div id="game">
     <div id="waves"></div>
     <img id="friends" src="friends.png" />
@@ -263,12 +266,8 @@
         }
 
         const rectCroc = crocWrapper.getBoundingClientRect();
-        if (
-          rectCroc.left < centerX + 30 &&
-          rectCroc.left > centerX - 30 &&
-          rectCroc.top < centerY + 30 &&
-          rectCroc.top > centerY - 30
-        ) {
+        const dist = Math.hypot(centerX - (rectCroc.left + rectCroc.width / 2), centerY - (rectCroc.top + rectCroc.height / 2));
+        if (dist < 40) {
           endGame(false);
           clearInterval(move);
         }
