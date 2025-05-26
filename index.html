@@ -125,7 +125,7 @@
     <source src="punch.wav" type="audio/wav">
   </audio>
   <img id="dedImage" src="ded.png" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; object-fit:cover; z-index:99;">
-  <div id="retryOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); z-index:100; color:white; text-align:center; font-size:32px; padding-top:30vh;">
+  <div id="retryOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.4); z-index:100; color:white; text-align:center; font-size:32px; padding-top:30vh;">
     Увы, ты не спасла своих друзей.<br><br>
     <button onclick="restartGame()" style="font-size:24px; padding:10px 20px; border:none; border-radius:12px; cursor:pointer; background:#fff; color:#000;">Попробовать ещё раз</button>
   </div>
@@ -158,9 +158,23 @@
       }, 100);
     }
 
+    
     function restartGame() {
-      location.reload();
+      // Сбросим всё перед новой попыткой
+      dedImage.style.display = "none";
+      retryOverlay.style.display = "none";
+      const waves = document.getElementById("waves");
+      waves.innerHTML = "";
+      friends.style.top = "50%";
+      friends.style.left = "50%";
+      friends.style.transform = "translate(-50%, -50%)";
+      friends.style.display = "block";
+      bgm.volume = 1;
+      bgm.play();
+      gameOver = false;
+      startGame();
     }
+
 
 
     document.body.addEventListener('click', () => {
