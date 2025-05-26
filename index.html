@@ -83,7 +83,7 @@ const endScreen = document.getElementById('endScreen');
 const endMessage = document.getElementById('endMessage');
 
 const CROCS = [];
-const SPAWN_INTERVAL = 1000;
+const SPAWN_INTERVAL = 1500;
 const GAME_DURATION = 60000;
 let gameEnded = false;
 
@@ -168,8 +168,7 @@ function startGame() {
 
   setTimeout(() => {
     if (!gameEnded) {
-      endMessage.textContent = "🎉 Ты спасла друзей!";
-      endScreen.classList.add("active");
+      window.location.href = "http://lera-birthday.com/final";
       gameEnded = true;
     }
   }, GAME_DURATION);
