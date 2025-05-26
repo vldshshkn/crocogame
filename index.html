@@ -214,8 +214,8 @@
 
         const friends = document.getElementById('friends');
         const rect = friends.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
+        const centerX = friendBox.left + rect.width / 2;
+        const centerY = friendBox.top + rect.height / 2;
 
         const side = Math.floor(Math.random() * 4);
         let x, y;
@@ -245,11 +245,15 @@
           crocWrapper.style.top = y + 'px';
 
           const rectCroc = crocWrapper.getBoundingClientRect();
+          const friendBox = friends.getBoundingClientRect();
           const overlap = !(
-            rectCroc.right < rect.left ||
-            rectCroc.left > rect.right ||
-            rectCroc.bottom < rect.top ||
-            rectCroc.top > rect.bottom
+            rectCroc.right < friendBox.left ||
+            rectCroc.left > friendBox.right ||
+            rectCroc.bottom < friendBox.top ||
+            rectCroc.top > friendBox.bottom ||
+            rectCroc.left > friendBox.right ||
+            rectCroc.bottom < friendBox.top ||
+            rectCroc.top > friendBox.bottom
           );
           if (overlap) {
             endGame(false);
