@@ -214,8 +214,8 @@
 
         const friends = document.getElementById('friends');
         const rect = friends.getBoundingClientRect();
-        const centerX = friendBox.left + rect.width / 2;
-        const centerY = friendBox.top + rect.height / 2;
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
 
         const side = Math.floor(Math.random() * 4);
         let x, y;
@@ -244,17 +244,19 @@
           crocWrapper.style.left = x + 'px';
           crocWrapper.style.top = y + 'px';
 
-          const rectCroc = crocWrapper.getBoundingClientRect();
           
-          const friendBox = friends.getBoundingClientRect();
-          const overlap = rectCroc.left < friendBox.right &&
-                          rectCroc.right > friendBox.left &&
-                          rectCroc.top < friendBox.bottom &&
-                          rectCroc.bottom > friendBox.top;
-          if (overlap) {
- {
-            endGame(false);
-            return;
+        const friendBox = friends.getBoundingClientRect();
+        const crocBox = crocWrapper.getBoundingClientRect();
+        const overlap =
+          crocBox.left < friendBox.right &&
+          crocBox.right > friendBox.left &&
+          crocBox.top < friendBox.bottom &&
+          crocBox.bottom > friendBox.top;
+        if (overlap) {
+          endGame(false);
+          return;
+        }
+
           }
 
           // пузырь
