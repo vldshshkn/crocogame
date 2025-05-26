@@ -245,17 +245,14 @@
           crocWrapper.style.top = y + 'px';
 
           const rectCroc = crocWrapper.getBoundingClientRect();
+          
           const friendBox = friends.getBoundingClientRect();
-          const overlap = !(
-            rectCroc.right < friendBox.left ||
-            rectCroc.left > friendBox.right ||
-            rectCroc.bottom < friendBox.top ||
-            rectCroc.top > friendBox.bottom ||
-            rectCroc.left > friendBox.right ||
-            rectCroc.bottom < friendBox.top ||
-            rectCroc.top > friendBox.bottom
-          );
+          const overlap = rectCroc.left < friendBox.right &&
+                          rectCroc.right > friendBox.left &&
+                          rectCroc.top < friendBox.bottom &&
+                          rectCroc.bottom > friendBox.top;
           if (overlap) {
+ {
             endGame(false);
             return;
           }
