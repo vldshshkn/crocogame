@@ -169,6 +169,8 @@
       friends.style.left = "50%";
       friends.style.transform = "translate(-50%, -50%)";
       friends.style.display = "block";
+      bgm.pause();
+      bgm.currentTime = 0;
       bgm.volume = 1;
       bgm.play();
       gameOver = false;
@@ -291,7 +293,10 @@
         fadeOutAudio(bgm, () => loseSound.play());
         dedImage.style.display = 'block';
         retryOverlay.style.display = 'block';
-        document.body.onclick = restartGame;
+        
+    document.body.onclick = null;
+    restartGame();
+    
       }
     }
 
