@@ -54,6 +54,7 @@
     }
 
     .crocodile {
+  border: 1px solid rgba(255,255,255,0.2); /* debug */
       animation: sway 2s infinite ease-in-out;
 
       position: absolute;
@@ -202,6 +203,9 @@
       const croc = document.createElement('img');
       croc.src = 'crocodile.png';
       croc.className = 'crocodile';
+      croc.style.opacity = '1';
+      croc.style.transform = 'none';
+      croc.classList.remove('fade-out');
 
       crocWrapper.appendChild(croc);
 
