@@ -54,6 +54,8 @@
     }
 
     .crocodile {
+      animation: sway 2s infinite ease-in-out;
+
       position: absolute;
       width: 120px;
       cursor: pointer;
@@ -117,6 +119,36 @@
       }
     }
 
+    @keyframes sway {
+      0% { transform: rotate(0deg); }
+      25% { transform: rotate(-2deg); }
+      50% { transform: rotate(0deg); }
+      75% { transform: rotate(2deg); }
+      100% { transform: rotate(0deg); }
+    }
+
+    .bubble {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 50%;
+      pointer-events: none;
+      animation: bubble-rise 1s ease-out forwards;
+      z-index: 2;
+    }
+
+    @keyframes bubble-rise {
+      0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.5);
+      }
+    }
+
     #message {
       position: absolute;
       top: 40%;
@@ -147,13 +179,14 @@
 
     function createFriendWaves() {
       const wavesContainer = document.getElementById('waves');
-      const offsets = ['-80px', '0px', '80px'];
-      offsets.forEach(offset => {
+      const positions = [-80, 0, 80];
+      positions.forEach(x => {
         const wave = document.createElement('div');
         wave.className = 'friend-wave';
-        wave.style.left = 'calc(50% + ' + offset + ')';
+        wave.style.left = '50%';
         wave.style.top = '50%';
-        wavesContainer.appendChild(wave);
+        wave.style.transform = `translate(${x}px, -50%)`;
+        document.getElementById('waves').appendChild(wave);
       });
     }
 
@@ -213,6 +246,16 @@
         croc.style.left = x + 'px';
         croc.style.top = y + 'px';
 
+        // пузырьки с шансом
+        if (Math.random() < 0.03) {
+          const bubble = document.createElement('div');
+          bubble.className = 'bubble';
+          bubble.style.left = (x + 40) + 'px';
+          bubble.style.top = (y + 40) + 'px';
+          game.appendChild(bubble);
+          setTimeout(() => bubble.remove(), 1000);
+        }
+
         const rectCroc = croc.getBoundingClientRect();
         if (
           rectCroc.left < centerX + 30 &&
@@ -261,7 +304,7 @@
           return;
         }
         createCrocodile();
-      }, 900);
+      }, 1000);
     }
 
     function endGame(win) {
