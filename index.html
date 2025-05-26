@@ -1,0 +1,190 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Спаси друзей</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+      background: url('background.png') no-repeat center center;
+      background-size: cover;
+      font-family: sans-serif;
+    }
+
+    #game {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #friends {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 200px;
+      transform: translate(-50%, -50%);
+      animation: bobbing 3s ease-in-out infinite;
+      z-index: 10;
+    }
+
+    @keyframes bobbing {
+      0%, 100% { transform: translate(-50%, -50%) translateY(0px); }
+      50% { transform: translate(-50%, -50%) translateY(10px); }
+    }
+
+    .crocodile {
+      position: absolute;
+      width: 100px;
+      transition: transform 0.1s linear;
+      animation: zigzag 2s infinite linear;
+      cursor: pointer;
+    }
+
+    @keyframes zigzag {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(10px); }
+      50% { transform: translateX(0); }
+      75% { transform: translateX(-10px); }
+      100% { transform: translateX(0); }
+    }
+
+    .wave {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.4);
+      animation: wave 2s linear infinite;
+      z-index: 0;
+    }
+
+    @keyframes wave {
+      0% {
+        transform: scale(0.5);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(2);
+        opacity: 0;
+      }
+    }
+
+    #message {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 36px;
+      color: white;
+      background: rgba(0,0,0,0.6);
+      padding: 20px 40px;
+      border-radius: 20px;
+      display: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <img id="friends" src="friends.png" />
+    <div class="wave" style="top:50%; left:50%; transform:translate(-50%,-50%);"></div>
+    <div id="message"></div>
+  </div>
+
+  <script>
+    const game = document.getElementById('game');
+    const message = document.getElementById('message');
+    const gameDuration = 120000; // 2 минуты
+    let gameOver = false;
+
+    function createCrocodile() {
+      if (gameOver) return;
+
+      const croc = document.createElement('img');
+      croc.src = 'crocodile.png';
+      croc.className = 'crocodile';
+
+      const size = 80 + Math.random() * 40;
+      croc.style.width = size + 'px';
+
+      const side = Math.random() < 0.5 ? 'left' : 'right';
+      const startY = Math.random() * window.innerHeight;
+      const friends = document.getElementById('friends');
+      const rect = friends.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      if (side === 'left') {
+        croc.style.left = '-100px';
+      } else {
+        croc.style.left = (window.innerWidth + 100) + 'px';
+      }
+
+      croc.style.top = startY + 'px';
+
+      game.appendChild(croc);
+
+      const dx = centerX - croc.offsetLeft;
+      const dy = centerY - croc.offsetTop;
+      const angle = Math.atan2(dy, dx);
+
+      let x = croc.offsetLeft;
+      let y = croc.offsetTop;
+      const speed = 1 + Math.random() * 1.5;
+
+      const move = setInterval(() => {
+        if (gameOver) {
+          clearInterval(move);
+          return;
+        }
+
+        x += Math.cos(angle) * speed;
+        y += Math.sin(angle) * speed;
+        croc.style.left = x + 'px';
+        croc.style.top = y + 'px';
+
+        const rectCroc = croc.getBoundingClientRect();
+        if (rectCroc.left < centerX + 30 && rectCroc.left > centerX - 30 &&
+            rectCroc.top < centerY + 30 && rectCroc.top > centerY - 30) {
+          endGame(false);
+          clearInterval(move);
+        }
+      }, 16);
+
+      croc.addEventListener('click', () => {
+        croc.remove();
+        clearInterval(move);
+      });
+    }
+
+    function startSpawning() {
+      const spawnInterval = setInterval(() => {
+        if (gameOver) {
+          clearInterval(spawnInterval);
+          return;
+        }
+        createCrocodile();
+      }, 800);
+    }
+
+    function endGame(win) {
+      gameOver = true;
+      message.textContent = win ? 'Ты спасла друзей!' : 'Ты не спас друзей';
+      message.style.display = 'block';
+    }
+
+    // Старт игры
+    startSpawning();
+
+    setTimeout(() => {
+      if (!gameOver) {
+        endGame(true);
+      }
+    }, gameDuration);
+  </script>
+</body>
+</html>
