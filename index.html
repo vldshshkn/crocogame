@@ -18,12 +18,12 @@
 </head>
 <body>
 <audio id="bgm" loop>
-  <source src="cocodoco.mp3" type="audio/mpeg">
+  <source src="/crocogame/cocodoco.mp3" type="audio/mpeg">
 </audio>
 <canvas id="gameCanvas"></canvas>
 
 <script>
-console.log("Игра загружается...");
+console.log("Загрузка...");
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -41,18 +41,18 @@ document.body.addEventListener('click', () => {
 }, { once: true });
 
 const background = new Image();
-background.src = 'background.png';
+background.src = '/crocogame/background.png';
 const friendsImg = new Image();
-friendsImg.src = 'friends.png';
+friendsImg.src = '/crocogame/friends.png';
 const crocImg = new Image();
-crocImg.src = 'crocodile.png';
+crocImg.src = '/crocogame/crocodile.png';
 
 let assetsLoaded = 0;
 function checkAllLoaded() {
   assetsLoaded++;
-  console.log("Загружено изображений: " + assetsLoaded);
+  console.log("Загружено: " + assetsLoaded);
   if (assetsLoaded === 3) {
-    console.log("Все изображения загружены. Запуск игры...");
+    console.log("ВСЁ ГОТОВО. Запуск игры.");
     startGame();
   }
 }
