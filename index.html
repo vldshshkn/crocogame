@@ -1,8 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Спаси друзей</title>
   <style>
     html, body {
@@ -12,12 +12,20 @@
       overflow: hidden;
       background: url('background.png') no-repeat center center;
       background-size: cover;
+      touch-action: manipulation;
     }
 
     #game {
       position: relative;
       width: 100vw;
       height: 100vh;
+    }
+
+    #waves {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
     }
 
     #friends {
@@ -57,6 +65,7 @@
       width: 120px;
       animation: sway 2s infinite ease-in-out;
       display: block;
+      cursor: pointer;
     }
 
     @keyframes sway {
@@ -130,168 +139,266 @@
       transform: scale(1.05);
       background: #eee;
     }
+
+    #loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 24px;
+      z-index: 1000;
+    }
   </style>
 </head>
 <body>
-  <audio id="bgm" loop>
+  <div id="loading">Загрузка игры...</div>
+  
+  <audio id="bgm" loop preload="auto">
     <source src="cocodoco.mp3" type="audio/mpeg">
   </audio>
+  <audio id="loseSound" preload="auto">
+    <source src="whenloose.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="punchSound" preload="auto">
+    <source src="punch.wav" type="audio/wav">
+  </audio>
+
   <div id="game">
     <div id="waves"></div>
-    <audio id="loseSound">
-      <source src="whenloose.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="punchSound">
-      <source src="punch.wav" type="audio/wav">
-    </audio>
     <img id="dedImage" src="ded.png" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; object-fit:cover; z-index:99;">
     <img id="friends" src="friends.png">
     <div id="message"></div>
   </div>
 
   <script>
-    const game = document.getElementById('game');
-    const message = document.getElementById('message');
-    const friends = document.getElementById('friends');
-    const bgm = document.getElementById('bgm');
-    let gameOver = false;
+    // Предзагрузка ресурсов
+    const resources = {
+      audio: ['cocodoco.mp3', 'whenloose.mp3', 'punch.wav'],
+      images: ['friends.png', 'crocodile.png', 'ded.png', 'background.png']
+    };
 
-    const loseSound = document.getElementById("loseSound");
-    const punchSound = document.getElementById("punchSound");
-    const dedImage = document.getElementById("dedImage");
+    let loadedResources = 0;
+    const totalResources = resources.audio.length + resources.images.length;
 
-    function fadeOutAudio(audio, callback) {
-      const fadeInterval = setInterval(() => {
-        if (audio.volume > 0.05) {
-          audio.volume -= 0.05;
-        } else {
-          audio.volume = 0;
-          clearInterval(fadeInterval);
-          if (callback) callback();
-        }
-      }, 100);
+    function resourceLoaded() {
+      loadedResources++;
+      if (loadedResources === totalResources) {
+        document.getElementById('loading').style.display = 'none';
+        initGame();
+      }
     }
 
-    
-    function createFriendWaves() {
-      const waves = document.getElementById('waves');
-      [-80, 0, 80].forEach(offset => {
-        const w = document.createElement('div');
-        w.className = 'friend-wave';
-        w.style.left = 'calc(50% + ' + offset + 'px)';
-        w.style.top = '50%';
-        waves.appendChild(w);
-      });
-    }
+    // Предзагрузка аудио
+    resources.audio.forEach(audioFile => {
+      const audio = new Audio();
+      audio.src = audioFile;
+      audio.addEventListener('canplaythrough', resourceLoaded);
+      audio.addEventListener('error', resourceLoaded);
+    });
 
-    function createCrocodile() {
-      const wrapper = document.createElement('div');
-      wrapper.style.position = 'absolute';
+    // Предзагрузка изображений
+    resources.images.forEach(imageFile => {
+      const img = new Image();
+      img.src = imageFile;
+      img.onload = resourceLoaded;
+      img.onerror = resourceLoaded;
+    });
 
-      const croc = document.createElement('img');
-      croc.src = 'crocodile.png';
-      croc.className = 'crocodile';
-      wrapper.appendChild(croc);
-      game.appendChild(wrapper);
+    function initGame() {
+      const game = document.getElementById('game');
+      const message = document.getElementById('message');
+      const friends = document.getElementById('friends');
+      const bgm = document.getElementById('bgm');
+      const loseSound = document.getElementById("loseSound");
+      const punchSound = document.getElementById("punchSound");
+      const dedImage = document.getElementById("dedImage");
+      
+      let gameOver = false;
+      let crocodiles = [];
+      let audioEnabled = false;
 
-      const side = Math.floor(Math.random() * 4);
-      let x, y;
-      if (side === 0) { x = -150; y = Math.random() * window.innerHeight; }
-      else if (side === 1) { x = window.innerWidth + 150; y = Math.random() * window.innerHeight; }
-      else if (side === 2) { x = Math.random() * window.innerWidth; y = -150; }
-      else { x = Math.random() * window.innerWidth; y = window.innerHeight + 150; }
+      // Активация аудио по первому взаимодействию
+      function enableAudio() {
+        if (audioEnabled) return;
+        audioEnabled = true;
+        bgm.volume = 0.5;
+        loseSound.volume = 0.7;
+        punchSound.volume = 0.7;
+        bgm.play().catch(e => console.log("Audio play error:", e));
+      }
 
-      wrapper.style.left = x + 'px';
-      wrapper.style.top = y + 'px';
+      document.addEventListener('click', enableAudio);
+      document.addEventListener('touchstart', enableAudio);
 
-      const rect = friends.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      const angle = Math.atan2(centerY - y, centerX - x);
-      wrapper.style.transform = `rotate(${angle * 180 / Math.PI - 90}deg)`;
+      function fadeOutAudio(audio, callback) {
+        const fadeInterval = setInterval(() => {
+          if (audio.volume > 0.05) {
+            audio.volume -= 0.05;
+          } else {
+            audio.volume = 0;
+            clearInterval(fadeInterval);
+            if (callback) callback();
+          }
+        }, 100);
+      }
 
-      const speed = 1.8;
+      function createFriendWaves() {
+        const waves = document.getElementById('waves');
+        [-80, 0, 80].forEach(offset => {
+          const w = document.createElement('div');
+          w.className = 'friend-wave';
+          w.style.left = 'calc(50% + ' + offset + 'px)';
+          w.style.top = '50%';
+          waves.appendChild(w);
+        });
+      }
 
-      function move() {
+      function createCrocodile() {
         if (gameOver) return;
-        x += Math.cos(angle) * speed;
-        y += Math.sin(angle) * speed;
+        
+        const wrapper = document.createElement('div');
+        wrapper.style.position = 'absolute';
+
+        const croc = document.createElement('img');
+        croc.src = 'crocodile.png';
+        croc.className = 'crocodile';
+        wrapper.appendChild(croc);
+        game.appendChild(wrapper);
+
+        const side = Math.floor(Math.random() * 4);
+        let x, y;
+        if (side === 0) { x = -150; y = Math.random() * window.innerHeight; }
+        else if (side === 1) { x = window.innerWidth + 150; y = Math.random() * window.innerHeight; }
+        else if (side === 2) { x = Math.random() * window.innerWidth; y = -150; }
+        else { x = Math.random() * window.innerWidth; y = window.innerHeight + 150; }
+
         wrapper.style.left = x + 'px';
         wrapper.style.top = y + 'px';
 
-        const f = friends.getBoundingClientRect();
-        const c = wrapper.getBoundingClientRect();
-        const shrink = 0.2;
-        const sw = f.width * shrink / 2;
-        const sh = f.height * shrink / 2;
-        const overlap = !(
-          c.right < f.left + sw ||
-          c.left > f.right - sw ||
-          c.bottom < f.top + sh ||
-          c.top > f.bottom - sh
-        );
-        if (overlap) {
-          endGame(false);
-          return;
+        const rect = friends.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const angle = Math.atan2(centerY - y, centerX - x);
+        wrapper.style.transform = `rotate(${angle * 180 / Math.PI - 90}deg)`;
+
+        const speed = 1.8 + Math.random() * 0.4;
+
+        function move() {
+          if (gameOver) return;
+          x += Math.cos(angle) * speed;
+          y += Math.sin(angle) * speed;
+          wrapper.style.left = x + 'px';
+          wrapper.style.top = y + 'px';
+
+          const f = friends.getBoundingClientRect();
+          const c = wrapper.getBoundingClientRect();
+          const shrink = 0.2;
+          const sw = f.width * shrink / 2;
+          const sh = f.height * shrink / 2;
+          const overlap = !(
+            c.right < f.left + sw ||
+            c.left > f.right - sw ||
+            c.bottom < f.top + sh ||
+            c.top > f.bottom - sh
+          );
+          if (overlap) {
+            endGame(false);
+            return;
+          }
+
+          if (Math.random() < 0.03) {
+            createBubble(c.left + c.width / 2, c.top + c.height / 2);
+          }
+
+          // Удаляем если вышли за пределы экрана
+          if (x < -200 || x > window.innerWidth + 200 || y < -200 || y > window.innerHeight + 200) {
+            wrapper.remove();
+            crocodiles = crocodiles.filter(c => c !== wrapper);
+            return;
+          }
+
+          requestAnimationFrame(move);
         }
 
-        if (Math.random() < 0.03) {
-          const b = document.createElement('div');
-          b.className = 'bubble';
-          b.style.left = (c.left + c.width / 2) + 'px';
-          b.style.top = (c.top + c.height / 2) + 'px';
-          game.appendChild(b);
-          setTimeout(() => b.remove(), 1000);
-        }
+        move();
 
-        requestAnimationFrame(move);
+        const handleClick = () => {
+          if (gameOver) return;
+          const splash = document.createElement('div');
+          splash.className = 'splash';
+          const r = wrapper.getBoundingClientRect();
+          splash.style.left = (r.left + r.width / 2) + 'px';
+          splash.style.top = (r.top + r.height / 2) + 'px';
+          game.appendChild(splash);
+          if (audioEnabled) punchSound.play();
+          wrapper.remove();
+          crocodiles = crocodiles.filter(c => c !== wrapper);
+          setTimeout(() => splash.remove(), 400);
+        };
+
+        croc.addEventListener('click', handleClick);
+        croc.addEventListener('touchstart', handleClick);
+
+        crocodiles.push(wrapper);
       }
 
-      move();
+      function createBubble(x, y) {
+        const b = document.createElement('div');
+        b.className = 'bubble';
+        b.style.left = x + 'px';
+        b.style.top = y + 'px';
+        game.appendChild(b);
+        setTimeout(() => b.remove(), 1000);
+      }
 
-      croc.addEventListener('click', () => {
-        const splash = document.createElement('div');
-        splash.className = 'splash';
-        const r = wrapper.getBoundingClientRect();
-        splash.style.left = (r.left + r.width / 2) + 'px';
-        splash.style.top = (r.top + r.height / 2) + 'px';
-        game.appendChild(splash);
-        punchSound.play();
-        wrapper.remove();
-        setTimeout(() => splash.remove(), 400);
-      });
-    }
+      function startGame() {
+        createFriendWaves();
+        const spawn = () => {
+          if (gameOver || crocodiles.length > 10) {
+            setTimeout(spawn, 1000);
+            return;
+          }
+          createCrocodile();
+          setTimeout(spawn, 1500 + Math.random() * 1000);
+        };
+        spawn();
+        setTimeout(() => {
+          if (!gameOver) endGame(true);
+        }, 60000);
+      }
 
-    function startGame() {
-      createFriendWaves();
-      const spawn = () => {
+      function endGame(win) {
+        gameOver = true;
+        crocodiles.forEach(croc => croc.remove());
+        crocodiles = [];
+        
+        if (win) {
+          window.location.href = "http://lera-birthday.com/final";
+        } else {
+          if (audioEnabled) {
+            fadeOutAudio(bgm, () => loseSound.play());
+          }
+          dedImage.style.display = 'block';
+          message.innerHTML = 'Ты не спасла друзей!<br><br><button onclick="window.location.href=\'https://vldshshkn.github.io/crocogame/\'">Попробовать ещё раз</button>';
+          message.style.display = 'block';
+        }
+      }
+
+      // Обработчик изменения размера окна
+      window.addEventListener('resize', () => {
         if (gameOver) return;
-        createCrocodile();
-        setTimeout(spawn, 1500);
-      };
-      spawn();
-      setTimeout(() => {
-        if (!gameOver) endGame(true);
-      }, 60000);
+        crocodiles.forEach(croc => croc.remove());
+        crocodiles = [];
+      });
+
+      startGame();
     }
-
-    function endGame(win) {
-      gameOver = true;
-      if (win) {
-        window.location.href = "http://lera-birthday.com/final";
-      } else {
-        fadeOutAudio(bgm, () => loseSound.play());
-        dedImage.style.display = 'block';
-        message.innerHTML = 'Ты не спасла друзей!<br><br><button onclick="window.location.href='https://vldshshkn.github.io/crocogame/'">Попробовать ещё раз</button>';
-        message.style.display = 'block';
-      }
-    }
-
-    
-
-  
-
-startGame();
-</script>
+  </script>
 </body>
 </html>
