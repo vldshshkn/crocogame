@@ -172,10 +172,7 @@
       }, 100);
     }
 
-    document.body.addEventListener('click', () => {
-      bgm.play();
-    }, { once: true });
-
+    
     function createFriendWaves() {
       const waves = document.getElementById('waves');
       [-80, 0, 80].forEach(offset => {
@@ -290,7 +287,34 @@
       }
     }
 
-    startGame();
+    
+function requestStart() {
+  document.getElementById('introOverlay').style.display = 'none';
+  bgm.play();
+  startGame();
+}
+
+window.onload = () => {
+  document.body.innerHTML += `
+    <div id="introOverlay" style="
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      font-size: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      z-index: 999;
+      cursor: pointer;
+    ">
+      Нажми, чтобы начать игру и включить музыку 🎵
+    </div>`;
+  document.getElementById('introOverlay').addEventListener('click', requestStart);
+};
+
   </script>
 </body>
 </html>
