@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Спаси друзей от крокодилов!</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      background: #0a3d62;
+      font-family: Arial, sans-serif;
+      touch-action: manipulation;
+    }
+
+    #game {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #waves {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    #friends {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 240px;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 10;
+      animation: bobbing 3s infinite ease-in-out;
+      filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+    }
+
+    @keyframes bobbing {
+      0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+      50% { transform: translate(-50%, -50%) translateY(8px); }
+    }
+
+    .friend-wave {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      animation: wave 3s ease-out infinite;
+      pointer-events: none;
+      z-index: 1;
+      transform: translate(-50%, -50%);
+    }
+
+    @keyframes wave {
+      0% { transform: translate(-50%, -50%) scale(0.3); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+    }
+
+    .crocodile {
+      width: 120px;
+      animation: sway 2s infinite ease-in-out;
+      display: block;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .crocodile:active {
+      transform: scale(0.9);
+    }
+
+    @keyframes sway {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(2deg); }
+    }
+
+    /* Анимации уничтожения */
+    @keyframes explode {
+      0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+      50% { transform: translate(-50%, -50%) scale(1.5); opacity: 0.8; }
+      100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
+    }
+
+    @keyframes croc-sink {
+      0% { transform: rotate(0deg) scale(1); opacity: 1; }
+      50% { transform: rotate(90deg) scale(0.8); opacity: 0.8; }
+      100% { transform: rotate(180deg) scale(0); opacity: 0; }
+    }
+
+    @keyframes friends-shock {
+      0%, 100% { transform: translate(-50%, -50%); }
+      25% { transform: translate(-50%, -50%) translateX(-10px); }
+      75% { transform: translate(-50%, -50%) translateX(10px); }
+    }
+
+    .particle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: particle-fly 1s ease-out forwards;
+    }
+
+    @keyframes particle-fly {
+      to {
+        transform: translate(
+          calc(var(--tx) * 100px),
+          calc(var(--ty) * 100px)
+        );
+        opacity: 0;
+      }
+    }
+
+    .explosion {
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ff9a00, #ff0000);
+      animation: explode 0.5s forwards;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    /* Интерфейс */
+    #score-display {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      color: white;
+      font-size: 24px;
+      text-shadow: 0 0 5px black;
+      z-index: 50;
+    }
+
+    #combo-display {
+      position: fixed;
+      top: 60px;
+      left: 20px;
+      color: gold;
+      font-size: 20px;
+      font-weight: bold;
+      text-shadow: 0 0 5px black;
+      z-index: 50;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    #message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 36px;
+      color: white;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 30px 50px;
+      border-radius: 20px;
+      display: none;
+      z-index: 100;
+      text-align: center;
+      box-shadow: 0 0 20px #00000099;
+      backdrop-filter: blur(5px);
+    }
+
+    #message button {
+      margin-top: 20px;
+      padding: 12px 24px;
+      font-size: 20px;
+      border: none;
+      border-radius: 14px;
+      background: white;
+      color: black;
+      cursor: pointer;
+      box-shadow: 0 0 10px #fff;
+      transition: all 0.2s ease;
+    }
+
+    #message button:hover {
+      transform: scale(1.05);
+      background: #eee;
+    }
+
+    #loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 24px;
+      z-index: 1000;
+      flex-direction: column;
+    }
+
+    .water-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 200%;
+      height: 200%;
+      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path fill="%231e90ff" d="M0,0 L100,0 L100,100 L0,100 Z"/></svg>') repeat;
+      opacity: 0.3;
+      animation: bg-move 20s linear infinite;
+      z-index: -1;
+    }
+
+    @keyframes bg-move {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(-50%, -50%); }
+    }
+  </style>
+</head>
+<body>
+  <div id="loading">
+    <div>Загрузка игры...</div>
+    <div id="progress" style="margin-top: 20px; width: 200px; height: 10px; background: #333; border-radius: 5px;">
+      <div id="progress-bar" style="width: 0%; height: 100%; background: #1e90ff; border-radius: 5px; transition: width 0.3s;"></div>
+    </div>
+  </div>
+
+  <div class="water-bg"></div>
+
+  <audio id="bgm" loop preload="auto">
+    <source src="cocodoco.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="loseSound" preload="auto">
+    <source src="whenloose.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="punchSound" preload="auto">
+    <source src="punch.wav" type="audio/wav">
+  </audio>
+  <audio id="boomSound" preload="auto">
+    <source src="boom.wav" type="audio/wav">
+  </audio>
+
+  <div id="game">
+    <div id="waves"></div>
+    <img id="dedImage" src="ded.png" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; object-fit:cover; z-index:99;">
+    <img id="friends" src="friends.png">
+    <div id="score-display">Очки: <span id="score">0</span> | Рекорд: <span id="high-score">0</span></div>
+    <div id="combo-display">COMBO: <span id="combo-count">0</span>x</div>
+    <div id="message"></div>
+  </div>
+
+  <script>
+    // Ресурсы для предзагрузки
+    const resources = {
+      audio: ['cocodoco.mp3', 'whenloose.mp3', 'punch.wav', 'boom.wav'],
+      images: ['friends.png', 'crocodile.png', 'ded.png']
+    };
+
+    // Инициализация игры
+    let gameOver = false;
+    let crocodiles = [];
+    let audioEnabled = false;
+    let score = 0;
+    let highScore = localStorage.getItem('highScore') || 0;
+    let comboCount = 0;
+    let comboTimeout;
+    let level = 1;
+    let speedMultiplier = 1;
+
+    // DOM элементы
+    const game = document.getElementById('game');
+    const message = document.getElementById('message');
+    const friends = document.getElementById('friends');
+    const bgm = document.getElementById('bgm');
+    const loseSound = document.getElementById('loseSound');
+    const punchSound = document.getElementById('punchSound');
+    const boomSound = document.getElementById('boomSound');
+    const dedImage = document.getElementById('dedImage');
+    const scoreDisplay = document.getElementById('score');
+    const highScoreDisplay = document.getElementById('high-score');
+    const comboDisplay = document.getElementById('combo-display');
+    const comboCountDisplay = document.getElementById('combo-count');
+    const progressBar = document.getElementById('progress-bar');
+
+    // Предзагрузка ресурсов
+    function loadResources() {
+      let loaded = 0;
+      const total = resources.audio.length + resources.images.length;
+
+      function updateProgress() {
+        loaded++;
+        const percent = Math.round((loaded / total) * 100);
+        progressBar.style.width = percent + '%';
+        
+        if (loaded === total) {
+          setTimeout(() => {
+            document.getElementById('loading').style.display = 'none';
+            initGame();
+          }, 500);
+        }
+      }
+
+      // Загрузка аудио
+      resources.audio.forEach(audioFile => {
+        const audio = new Audio();
+        audio.src = audioFile;
+        audio.addEventListener('canplaythrough', updateProgress);
+        audio.addEventListener('error', updateProgress);
+      });
+
+      // Загрузка изображений
+      resources.images.forEach(imageFile => {
+        const img = new Image();
+        img.src = imageFile;
+        img.onload = updateProgress;
+        img.onerror = updateProgress;
+      });
+    }
+
+    // Активация аудио
+    function enableAudio() {
+      if (audioEnabled) return;
+      audioEnabled = true;
+      bgm.volume = 0.5;
+      loseSound.volume = 0.7;
+      punchSound.volume = 0.7;
+      boomSound.volume = 0.3;
+      bgm.play().catch(e => console.log("Audio error:", e));
+    }
+
+    // Создание волн вокруг друзей
+    function createFriendWaves() {
+      const waves = document.getElementById('waves');
+      [-80, 0, 80].forEach(offset => {
+        const w = document.createElement('div');
+        w.className = 'friend-wave';
+        w.style.left = 'calc(50% + ' + offset + 'px)';
+        w.style.top = '50%';
+        waves.appendChild(w);
+      });
+    }
+
+    // Создание крокодила
+    function createCrocodile() {
+      if (gameOver) return;
+      
+      const wrapper = document.createElement('div');
+      wrapper.style.position = 'absolute';
+
+      const croc = document.createElement('img');
+      croc.src = 'crocodile.png';
+      croc.className = 'crocodile';
+      wrapper.appendChild(croc);
+      game.appendChild(wrapper);
+
+      // Позиция за пределами экрана
+      const side = Math.floor(Math.random() * 4);
+      let x, y;
+      if (side === 0) { x = -150; y = Math.random() * window.innerHeight; }
+      else if (side === 1) { x = window.innerWidth + 150; y = Math.random() * window.innerHeight; }
+      else if (side === 2) { x = Math.random() * window.innerWidth; y = -150; }
+      else { x = Math.random() * window.innerWidth; y = window.innerHeight + 150; }
+
+      wrapper.style.left = x + 'px';
+      wrapper.style.top = y + 'px';
+
+      // Расчет направления движения
+      const rect = friends.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const angle = Math.atan2(centerY - y, centerX - x);
+      wrapper.style.transform = `rotate(${angle * 180 / Math.PI - 90}deg)`;
+
+      // Скорость зависит от уровня
+      const speed = (1.5 + Math.random() * 0.5) * speedMultiplier;
+
+      // Движение крокодила
+      function move() {
+        if (gameOver) return;
+        x += Math.cos(angle) * speed;
+        y += Math.sin(angle) * speed;
+        wrapper.style.left = x + 'px';
+        wrapper.style.top = y + 'px';
+
+        // Проверка столкновения с друзьями
+        const f = friends.getBoundingClientRect();
+        const c = wrapper.getBoundingClientRect();
+        const shrink = 0.2;
+        const sw = f.width * shrink / 2;
+        const sh = f.height * shrink / 2;
+        const overlap = !(
+          c.right < f.left + sw ||
+          c.left > f.right - sw ||
+          c.bottom < f.top + sh ||
+          c.top > f.bottom - sh
+        );
+
+        if (overlap) {
+          endGame(false);
+          return;
+        }
+
+        // Создание пузырьков
+        if (Math.random() < 0.03) {
+          createBubble(c.left + c.width / 2, c.top + c.height / 2);
+        }
+
+        // Удаление если вышел за пределы
+        if (x < -200 || x > window.innerWidth + 200 || y < -200 || y > window.innerHeight + 200) {
+          wrapper.remove();
+          crocodiles = crocodiles.filter(c => c !== wrapper);
+          return;
+        }
+
+        requestAnimationFrame(move);
+      }
+
+      move();
+
+      // Обработчики клика/тапа
+      const handleClick = () => killCrocodile(wrapper, croc);
+      croc.addEventListener('click', handleClick);
+      croc.addEventListener('touchstart', handleClick, { passive: true });
+
+      crocodiles.push(wrapper);
+    }
+
+    // Уничтожение крокодила с эффектами
+    function killCrocodile(wrapper, croc) {
+      if (gameOver) return;
+      
+      const rect = wrapper.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      
+      // 1. Эффект взрыва
+      const explosion = document.createElement('div');
+      explosion.className = 'explosion';
+      explosion.style.left = centerX + 'px';
+      explosion.style.top = centerY + 'px';
+      game.appendChild(explosion);
+      
+      // 2. Создание частиц
+      for (let i = 0; i < 20; i++) {
+        createParticle(centerX, centerY);
+      }
+      
+      // 3. Анимация "проваливания" крокодила
+      croc.style.animation = 'croc-sink 0.4s forwards';
+      
+      // 4. Эффект "шока" у друзей
+      friends.style.animation = 'friends-shock 0.3s 2';
+      setTimeout(() => {
+        friends.style.animation = 'bobbing 3s infinite ease-in-out';
+      }, 600);
+      
+      // 5. Звуковые эффекты
+      if (audioEnabled) {
+        punchSound.currentTime = 0;
+        punchSound.play();
+        boomSound.currentTime = 0;
+        boomSound.play();
+      }
+      
+      // Удаление элементов после анимации
+      setTimeout(() => {
+        wrapper.remove();
+        explosion.remove();
+        crocodiles = crocodiles.filter(c => c !== wrapper);
+      }, 500);
+      
+      addScore(10);
+      addCombo();
+    }
+
+    // Создание частицы
+    function createParticle(x, y) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = x + 'px';
+      p.style.top = y + 'px';
+      p.style.background = `hsl(${Math.random() * 60 + 20}, 100%, 50%)`;
+      
+      const angle = Math.random() * Math.PI * 2;
+      p.style.setProperty('--tx', Math.cos(angle));
+      p.style.setProperty('--ty', Math.sin(angle));
+      
+      game.appendChild(p);
+      setTimeout(() => p.remove(), 1000);
+    }
+
+    // Создание пузырька
+    function createBubble(x, y) {
+      const b = document.createElement('div');
+      b.className = 'bubble';
+      b.style.left = x + 'px';
+      b.style.top = y + 'px';
+      b.style.width = (4 + Math.random() * 8) + 'px';
+      b.style.height = b.style.width;
+      b.style.animationDuration = (1 + Math.random() * 2) + 's';
+      game.appendChild(b);
+      setTimeout(() => b.remove(), 2000);
+    }
+
+    // Добавление очков
+    function addScore(points) {
+      score += points;
+      scoreDisplay.textContent = score;
+      
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('highScore', highScore);
+        highScoreDisplay.textContent = highScore;
+      }
+      
+      // Проверка уровня
+      if (score >= level * 100) {
+        updateLevel();
+      }
+    }
+
+    // Система комбо
+    function addCombo() {
+      comboCount++;
+      clearTimeout(comboTimeout);
+      comboTimeout = setTimeout(() => {
+        comboDisplay.style.opacity = '0';
+        comboCount = 0;
+      }, 2000);
+      
+      comboCountDisplay.textContent = comboCount;
+      comboDisplay.style.opacity = '1';
+      
+      // Бонус за комбо
+      if (comboCount >= 3) {
+        const bonus = Math.floor(comboCount / 3) * 5;
+        addScore(bonus);
+      }
+    }
+
+    // Обновление уровня
+    function updateLevel() {
+      level++;
+      speedMultiplier = 1 + (level * 0.15);
+      
+      // Визуальный эффект нового уровня
+      const levelUp = document.createElement('div');
+      levelUp.textContent = `Уровень ${level}!`;
+      levelUp.style.position = 'fixed';
+      levelUp.style.top = '50%';
+      levelUp.style.left = '50%';
+      levelUp.style.transform = 'translate(-50%, -50%)';
+      levelUp.style.color = 'gold';
+      levelUp.style.fontSize = '48px';
+      levelUp.style.fontWeight = 'bold';
+      levelUp.style.textShadow = '0 0 10px black';
+      levelUp.style.zIndex = '50';
+      levelUp.style.animation = 'pop 1s forwards';
+      game.appendChild(levelUp);
+      
+      setTimeout(() => {
+        levelUp.remove();
+      }, 1500);
+    }
+
+    // Завершение игры
+    function endGame(win) {
+      gameOver = true;
+      crocodiles.forEach(croc => croc.remove());
+      crocodiles = [];
+      
+      if (win) {
+        window.location.href = "http://lera-birthday.com/final";
+      } else {
+        if (audioEnabled) {
+          fadeOutAudio(bgm, () => loseSound.play());
+        }
+        dedImage.style.display = 'block';
+        message.innerHTML = 'Ты не спасла друзей!<br>Очки: ' + score + '<br><br><button onclick="window.location.reload()">Попробовать ещё раз</button>';
+        message.style.display = 'block';
+      }
+    }
+
+    // Плавное затухание звука
+    function fadeOutAudio(audio, callback) {
+      const fadeInterval = setInterval(() => {
+        if (audio.volume > 0.05) {
+          audio.volume -= 0.05;
+        } else {
+          audio.volume = 0;
+          clearInterval(fadeInterval);
+          if (callback) callback();
+        }
+      }, 100);
+    }
+
+    // Инициализация игры
+    function initGame() {
+      // Активация аудио по взаимодействию
+      document.addEventListener('click', enableAudio);
+      document.addEventListener('touchstart', enableAudio, { passive: true });
+      
+      // Обновление рекорда
+      highScoreDisplay.textContent = highScore;
+      
+      // Начало игры
+      createFriendWaves();
+      
+      // Спаун крокодилов
+      const spawn = () => {
+        if (gameOver) return;
+        createCrocodile();
+        setTimeout(spawn, 1500 + Math.random() * 1000);
+      };
+      spawn();
+      
+      // Таймер игры (60 секунд)
+      setTimeout(() => {
+        if (!gameOver) endGame(true);
+      }, 60000);
+    }
+
+    // Запуск предзагрузки
+    loadResources();
+  </script>
+</body>
+</html>
