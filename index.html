@@ -99,16 +99,36 @@
 
     #message {
       position: absolute;
-      top: 40%;
+      top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
       font-size: 36px;
       color: white;
-      background: rgba(0,0,0,0.6);
-      padding: 20px 40px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 30px 50px;
       border-radius: 20px;
       display: none;
       z-index: 100;
+      text-align: center;
+      box-shadow: 0 0 20px #00000099;
+    }
+
+    #message button {
+      margin-top: 20px;
+      padding: 12px 24px;
+      font-size: 20px;
+      border: none;
+      border-radius: 14px;
+      background: white;
+      color: black;
+      cursor: pointer;
+      box-shadow: 0 0 10px #fff;
+      transition: transform 0.2s ease;
+    }
+
+    #message button:hover {
+      transform: scale(1.05);
+      background: #eee;
     }
   </style>
 </head>
@@ -117,19 +137,14 @@
     <source src="cocodoco.mp3" type="audio/mpeg">
   </audio>
   <div id="game">
-    <div id="waves">
-  <audio id="loseSound">
-    <source src="whenloose.mp3" type="audio/mpeg">
-  </audio>
-  <audio id="punchSound">
-    <source src="punch.wav" type="audio/wav">
-  </audio>
-  <img id="dedImage" src="ded.png" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; object-fit:cover; z-index:99;">
-  <div id="retryOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.4); z-index:100; color:white; text-align:center; font-size:32px; padding-top:30vh;">
-    Увы, ты не спасла своих друзей.<br><br>
-    <button onclick="location.reload()" style="font-size:24px; padding:10px 20px; border:none; border-radius:12px; cursor:pointer; background:#fff; color:#000;">Попробовать ещё раз</button>
-  </div>
-
+    <div id="waves"></div>
+    <audio id="loseSound">
+      <source src="whenloose.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="punchSound">
+      <source src="punch.wav" type="audio/wav">
+    </audio>
+    <img id="dedImage" src="ded.png" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; object-fit:cover; z-index:99;">
     <img id="friends" src="friends.png">
     <div id="message"></div>
   </div>
@@ -144,7 +159,6 @@
     const loseSound = document.getElementById("loseSound");
     const punchSound = document.getElementById("punchSound");
     const dedImage = document.getElementById("dedImage");
-    const retryOverlay = document.getElementById("retryOverlay");
 
     function fadeOutAudio(audio, callback) {
       const fadeInterval = setInterval(() => {
@@ -157,7 +171,6 @@
         }
       }, 100);
     }
-
 
     document.body.addEventListener('click', () => {
       bgm.play();
@@ -272,16 +285,8 @@
       } else {
         fadeOutAudio(bgm, () => loseSound.play());
         dedImage.style.display = 'block';
-        retryOverlay.style.display = 'block';
-      }
-    
-      gameOver = true;
-      if (win) {
-        window.location.href = "http://lera-birthday.com/final";
-      } else {
-        message.textContent = 'Ты не спасла друзей!';
+        message.innerHTML = 'Ты не спасла друзей!<br><br><button onclick="location.reload()">Попробовать ещё раз</button>';
         message.style.display = 'block';
-        setTimeout(() => location.reload(), 2000);
       }
     }
 
