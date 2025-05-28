@@ -424,6 +424,14 @@
       bgm.play().catch(e => console.log("Audio error:", e));
     }
 
+    
+    function playSound(sound) {
+      const s = sound.cloneNode();
+      s.volume = sound.volume;
+      s.play();
+    }
+
+
     // Создание волн вокруг друзей
     function createFriendWaves() {
       const waves = document.getElementById('waves');
@@ -439,7 +447,7 @@
     // Создание следа от крокодила
     function createCrocTrail(x, y) {
       const now = Date.now();
-      if (now - lastTrailTime < 300) return;
+      if (now - lastTrailTime < 100) return;
       lastTrailTime = now;
       
       const trail = document.createElement('div');
@@ -592,10 +600,8 @@
       
       // 6. Звуковые эффекты
       if (audioEnabled) {
-        punchSound.currentTime = 0;
-        punchSound.play();
-        boomSound.currentTime = 0;
-        boomSound.play();
+        playSound(punchSound);
+        playSound(boomSound);
       }
       
       // Удаление элементов после анимации
