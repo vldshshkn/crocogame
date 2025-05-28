@@ -5,29 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Спаси друзей от крокодилов!</title>
   <style>
-    /* ... (предыдущие стили остаются без изменений) ... */
+    /* Основные стили остаются без изменений */
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      background: #0a3d62;
+      font-family: Arial, sans-serif;
+      touch-action: manipulation;
+    }
 
-    /* Новые стили для водного фона и следов */
-    .water-background {
+    /* Добавляем новые стили для воды */
+    .water-container {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: linear-gradient(to bottom, #0a3d62, #1e90ff);
-      z-index: -2;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .water-depth {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom, #052146, #1a6ea0);
     }
 
     .water-surface {
-      position: fixed;
+      position: absolute;
       top: 0;
       left: 0;
       width: 200%;
       height: 200%;
-      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path fill="%231e90ff" opacity="0.3" d="M0,50 Q25,30 50,50 T100,50 L100,100 L0,100 Z"/></svg>') repeat;
-      animation: water-flow 20s linear infinite;
-      z-index: -1;
-      opacity: 0.6;
+      background: 
+        radial-gradient(circle at 20% 30%, rgba(58, 175, 255, 0.2) 0%, transparent 20%),
+        radial-gradient(circle at 80% 70%, rgba(58, 175, 255, 0.2) 0%, transparent 20%),
+        radial-gradient(circle at 40% 60%, rgba(58, 175, 255, 0.3) 0%, transparent 25%);
+      animation: water-flow 15s linear infinite;
+      opacity: 0.8;
     }
 
     @keyframes water-flow {
@@ -35,49 +55,104 @@
       100% { transform: translate(-50%, -50%); }
     }
 
-    .water-ripple {
+    .water-ripples {
       position: absolute;
-      width: 40px;
-      height: 40px;
-      background: radial-gradient(circle, rgba(30, 144, 255, 0.8) 0%, rgba(30, 144, 255, 0) 70%);
-      border-radius: 50%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       pointer-events: none;
-      z-index: 5;
-      animation: ripple-expand 1.5s ease-out forwards;
     }
 
-    @keyframes ripple-expand {
-      0% { transform: scale(0.5); opacity: 1; }
-      100% { transform: scale(3); opacity: 0; }
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(100, 200, 255, 0.3);
+      transform: translate(-50%, -50%);
+      animation: ripple 2s ease-out forwards;
+      pointer-events: none;
+    }
+
+    @keyframes ripple {
+      0% { width: 10px; height: 10px; opacity: 0.8; }
+      100% { width: 200px; height: 200px; opacity: 0; }
     }
 
     .crocodile-trail {
       position: absolute;
-      width: 30px;
-      height: 30px;
-      background: rgba(30, 144, 255, 0.3);
+      width: 40px;
+      height: 40px;
+      background: rgba(100, 200, 255, 0.2);
       border-radius: 50%;
+      filter: blur(5px);
       pointer-events: none;
-      z-index: 4;
-      animation: trail-fade 2s forwards;
+      z-index: 3;
+      animation: trail-fade 1.5s forwards;
     }
 
     @keyframes trail-fade {
-      0% { transform: scale(1); opacity: 0.8; }
+      0% { transform: scale(0.8); opacity: 0.6; }
       100% { transform: scale(1.5); opacity: 0; }
     }
+
+    /* Модифицируем стиль крокодила для лучшей интеграции */
+    .crocodile {
+      width: 120px;
+      animation: sway 2s infinite ease-in-out;
+      display: block;
+      cursor: pointer;
+      transition: transform 0.2s;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    }
+
+    /* Остальные стили остаются без изменений */
+    /* ... */
   </style>
 </head>
 <body>
-  <!-- Добавляем новые элементы для воды -->
-  <div class="water-background"></div>
-  <div class="water-surface"></div>
+  <!-- Добавляем контейнер для воды -->
+  <div class="water-container">
+    <div class="water-depth"></div>
+    <div class="water-surface"></div>
+    <div class="water-ripples"></div>
+  </div>
 
-  <!-- ... (остальная разметка остается без изменений) ... -->
+  <!-- Остальная разметка остается без изменений -->
+  <div id="loading">
+    <!-- ... -->
+  </div>
+
+  <!-- ... -->
 
   <script>
-    // ... (предыдущий код остается без изменений до функции createCrocodile) ...
+    // Добавляем новые функции для водных эффектов
+    function createRipple(x, y, size = 100) {
+      const ripple = document.createElement('div');
+      ripple.className = 'ripple';
+      ripple.style.left = x + 'px';
+      ripple.style.top = y + 'px';
+      ripple.style.width = size + 'px';
+      ripple.style.height = size + 'px';
+      document.querySelector('.water-ripples').appendChild(ripple);
+      setTimeout(() => ripple.remove(), 2000);
+    }
 
+    function createTrail(x, y) {
+      const trail = document.createElement('div');
+      trail.className = 'crocodile-trail';
+      trail.style.left = x + 'px';
+      trail.style.top = y + 'px';
+      
+      // Добавляем случайные вариации
+      trail.style.width = (30 + Math.random() * 20) + 'px';
+      trail.style.height = (20 + Math.random() * 10) + 'px';
+      trail.style.animationDuration = (1 + Math.random()) + 's';
+      
+      document.querySelector('.water-ripples').appendChild(trail);
+      setTimeout(() => trail.remove(), 1500);
+    }
+
+    // Модифицируем функцию движения крокодила
     function createCrocodile() {
       if (gameOver) return;
       
@@ -90,10 +165,11 @@
       wrapper.appendChild(croc);
       game.appendChild(wrapper);
 
-      // ... (начальный код позиционирования крокодила остается без изменений) ...
+      // ... (остальной код создания крокодила остается без изменений) ...
 
       let lastTrailTime = 0;
-      
+      const trailInterval = 200; // Интервал между следами в мс
+
       function move() {
         if (gameOver) return;
         x += Math.cos(angle) * speed;
@@ -101,57 +177,43 @@
         wrapper.style.left = x + 'px';
         wrapper.style.top = y + 'px';
 
-        // Создаем водный след каждые 200мс
+        // Создаем следы с интервалом
         const now = Date.now();
-        if (now - lastTrailTime > 200) {
-          createTrail(x, y);
+        if (now - lastTrailTime > trailInterval) {
+          createTrail(x + 60, y + 40); // Смещаем след относительно крокодила
           lastTrailTime = now;
         }
 
-        // ... (остальной код движения крокодила остается без изменений) ...
+        // ... (остальной код движения остается без изменений) ...
       }
 
-      // ... (остальной код функции createCrocodile остается без изменений) ...
-    }
-
-    // Создание водного следа
-    function createTrail(x, y) {
-      const trail = document.createElement('div');
-      trail.className = 'crocodile-trail';
-      trail.style.left = x + 'px';
-      trail.style.top = y + 'px';
-      game.appendChild(trail);
-      setTimeout(() => trail.remove(), 2000);
-    }
-
-    // Создание кругов на воде при клике
-    function createRipple(x, y) {
-      const ripple = document.createElement('div');
-      ripple.className = 'water-ripple';
-      ripple.style.left = x + 'px';
-      ripple.style.top = y + 'px';
-      game.appendChild(ripple);
-      setTimeout(() => ripple.remove(), 1500);
-    }
-
-    // Модифицируем функцию killCrocodile для добавления кругов на воде
-    function killCrocodile(wrapper, croc) {
-      // ... (начало функции остается без изменений) ...
-      
-      // Добавляем круги на воде при уничтожении
-      for (let i = 0; i < 5; i++) {
-        setTimeout(() => {
-          createRipple(
-            centerX + (Math.random() * 60 - 30),
-            centerY + (Math.random() * 60 - 30)
-          );
-        }, i * 200);
-      }
-      
       // ... (остальной код функции остается без изменений) ...
     }
 
-    // ... (остальной код остается без изменений) ...
+    // Модифицируем функцию уничтожения крокодила
+    function killCrocodile(wrapper, croc) {
+      if (gameOver) return;
+      
+      const rect = wrapper.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      
+      // Создаем большой всплеск при уничтожении
+      for (let i = 0; i < 5; i++) {
+        setTimeout(() => {
+          createRipple(
+            centerX + (Math.random() * 80 - 40),
+            centerY + (Math.random() * 80 - 40),
+            80 + Math.random() * 70
+          );
+        }, i * 150);
+      }
+
+      // ... (остальной код уничтожения остается без изменений) ...
+    }
+
+    // Остальной код скрипта остается без изменений
+    // ...
   </script>
 </body>
 </html>
