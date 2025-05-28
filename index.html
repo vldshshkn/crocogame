@@ -5,154 +5,474 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Спаси друзей от крокодилов!</title>
   <style>
-    /* Основные стили остаются без изменений */
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
       overflow: hidden;
-      background: #0a3d62;
+      background: linear-gradient(to bottom, #0a3d62, #1e90ff);
       font-family: Arial, sans-serif;
       touch-action: manipulation;
     }
 
-    /* Добавляем новые стили для воды */
-    .water-container {
+    #game {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Новые стили для водных эффектов */
+    .water-depth {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      z-index: -1;
-      overflow: hidden;
-    }
-
-    .water-depth {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(to bottom, #052146, #1a6ea0);
+      background: linear-gradient(to bottom, 
+        rgba(10, 61, 98, 0.8) 0%, 
+        rgba(30, 144, 255, 0.6) 50%, 
+        rgba(135, 206, 250, 0.4) 100%);
+      z-index: -2;
     }
 
     .water-surface {
-      position: absolute;
+      position: fixed;
       top: 0;
       left: 0;
       width: 200%;
       height: 200%;
       background: 
-        radial-gradient(circle at 20% 30%, rgba(58, 175, 255, 0.2) 0%, transparent 20%),
-        radial-gradient(circle at 80% 70%, rgba(58, 175, 255, 0.2) 0%, transparent 20%),
-        radial-gradient(circle at 40% 60%, rgba(58, 175, 255, 0.3) 0%, transparent 25%);
-      animation: water-flow 15s linear infinite;
-      opacity: 0.8;
+        radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 20%),
+        radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 20%),
+        linear-gradient(45deg, rgba(255, 255, 255, 0.05) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.05) 75%);
+      background-size: 200px 200px;
+      animation: water-move 20s linear infinite;
+      z-index: -1;
+      opacity: 0.7;
+      pointer-events: none;
     }
 
-    @keyframes water-flow {
+    @keyframes water-move {
       0% { transform: translate(0, 0); }
       100% { transform: translate(-50%, -50%); }
     }
 
-    .water-ripples {
-      position: absolute;
+    .water-highlights {
+      position: fixed;
       top: 0;
       left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 30% 40%, rgba(255, 255, 255, 0.2) 0%, transparent 30%),
+                  radial-gradient(circle at 70% 60%, rgba(255, 255, 255, 0.2) 0%, transparent 30%);
+      z-index: 0;
+      pointer-events: none;
+      animation: highlight-move 15s infinite alternate;
+    }
+
+    @keyframes highlight-move {
+      0% { transform: translate(-5%, -5%); }
+      50% { transform: translate(5%, 5%); }
+      100% { transform: translate(-5%, -5%); }
+    }
+
+    #waves {
+      position: absolute;
       width: 100%;
       height: 100%;
       pointer-events: none;
     }
 
-    .ripple {
+    #friends {
       position: absolute;
-      border-radius: 50%;
-      background: rgba(100, 200, 255, 0.3);
+      top: 50%;
+      left: 50%;
+      width: 240px;
       transform: translate(-50%, -50%);
-      animation: ripple 2s ease-out forwards;
       pointer-events: none;
+      z-index: 10;
+      animation: bobbing 3s infinite ease-in-out;
+      filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
     }
 
-    @keyframes ripple {
-      0% { width: 10px; height: 10px; opacity: 0.8; }
-      100% { width: 200px; height: 200px; opacity: 0; }
+    @keyframes bobbing {
+      0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+      50% { transform: translate(-50%, -50%) translateY(8px); }
     }
 
-    .crocodile-trail {
+    .friend-wave {
       position: absolute;
-      width: 40px;
-      height: 40px;
-      background: rgba(100, 200, 255, 0.2);
+      width: 80px;
+      height: 80px;
       border-radius: 50%;
-      filter: blur(5px);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      animation: wave 3s ease-out infinite;
       pointer-events: none;
-      z-index: 3;
-      animation: trail-fade 1.5s forwards;
+      z-index: 1;
+      transform: translate(-50%, -50%);
     }
 
-    @keyframes trail-fade {
-      0% { transform: scale(0.8); opacity: 0.6; }
-      100% { transform: scale(1.5); opacity: 0; }
+    @keyframes wave {
+      0% { transform: translate(-50%, -50%) scale(0.3); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
     }
 
-    /* Модифицируем стиль крокодила для лучшей интеграции */
     .crocodile {
       width: 120px;
       animation: sway 2s infinite ease-in-out;
       display: block;
       cursor: pointer;
       transition: transform 0.2s;
-      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+      filter: drop-shadow(2px 4px 3px rgba(0, 0, 0, 0.3));
+      z-index: 5;
+      position: relative;
     }
 
-    /* Остальные стили остаются без изменений */
-    /* ... */
+    .crocodile:active {
+      transform: scale(0.9);
+    }
+
+    @keyframes sway {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(2deg); }
+    }
+
+    /* Следы от крокодилов */
+    .croc-trail {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(135, 206, 250, 0.4), transparent 70%);
+      filter: blur(5px);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 2;
+      animation: trail-fade 3s forwards;
+    }
+
+    @keyframes trail-fade {
+      0% { opacity: 0.8; transform: translate(-50%, -50%) scale(0.8); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+    }
+
+    /* Водные всплески */
+    .splash {
+      position: absolute;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.6);
+      pointer-events: none;
+      z-index: 4;
+      transform: translate(-50%, -50%);
+    }
+
+    .splash-1 {
+      animation: splash-wave 1.2s ease-out forwards;
+    }
+
+    .splash-2 {
+      animation: splash-wave 1.5s 0.1s ease-out forwards;
+    }
+
+    .splash-3 {
+      animation: splash-wave 1.8s 0.2s ease-out forwards;
+    }
+
+    @keyframes splash-wave {
+      0% { transform: translate(-50%, -50%) scale(0); opacity: 0.8; }
+      100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
+    }
+
+    /* Анимации уничтожения */
+    @keyframes explode {
+      0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+      50% { transform: translate(-50%, -50%) scale(1.5); opacity: 0.8; }
+      100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
+    }
+
+    @keyframes croc-sink {
+      0% { transform: rotate(0deg) scale(1); opacity: 1; }
+      50% { transform: rotate(90deg) scale(0.8); opacity: 0.8; }
+      100% { transform: rotate(180deg) scale(0); opacity: 0; }
+    }
+
+    @keyframes friends-shock {
+      0%, 100% { transform: translate(-50%, -50%); }
+      25% { transform: translate(-50%, -50%) translateX(-10px); }
+      75% { transform: translate(-50%, -50%) translateX(10px); }
+    }
+
+    .particle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: particle-fly 1s ease-out forwards;
+      z-index: 6;
+    }
+
+    @keyframes particle-fly {
+      to {
+        transform: translate(
+          calc(var(--tx) * 100px),
+          calc(var(--ty) * 100px)
+        );
+        opacity: 0;
+      }
+    }
+
+    .explosion {
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ff9a00, #ff0000);
+      animation: explode 0.5s forwards;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    /* Интерфейс */
+    #score-display {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      color: white;
+      font-size: 24px;
+      text-shadow: 0 0 5px black;
+      z-index: 50;
+    }
+
+    #combo-display {
+      position: fixed;
+      top: 60px;
+      left: 20px;
+      color: gold;
+      font-size: 20px;
+      font-weight: bold;
+      text-shadow: 0 0 5px black;
+      z-index: 50;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    #message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 36px;
+      color: white;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 30px 50px;
+      border-radius: 20px;
+      display: none;
+      z-index: 100;
+      text-align: center;
+      box-shadow: 0 0 20px #00000099;
+      backdrop-filter: blur(5px);
+    }
+
+    #message button {
+      margin-top: 20px;
+      padding: 12px 24px;
+      font-size: 20px;
+      border: none;
+      border-radius: 14px;
+      background: white;
+      color: black;
+      cursor: pointer;
+      box-shadow: 0 0 10px #fff;
+      transition: all 0.2s ease;
+    }
+
+    #message button:hover {
+      transform: scale(1.05);
+      background: #eee;
+    }
+
+    #loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 24px;
+      z-index: 1000;
+      flex-direction: column;
+    }
   </style>
 </head>
 <body>
-  <!-- Добавляем контейнер для воды -->
-  <div class="water-container">
-    <div class="water-depth"></div>
-    <div class="water-surface"></div>
-    <div class="water-ripples"></div>
-  </div>
-
-  <!-- Остальная разметка остается без изменений -->
   <div id="loading">
-    <!-- ... -->
+    <div>Загрузка игры...</div>
+    <div id="progress" style="margin-top: 20px; width: 200px; height: 10px; background: #333; border-radius: 5px;">
+      <div id="progress-bar" style="width: 0%; height: 100%; background: #1e90ff; border-radius: 5px; transition: width 0.3s;"></div>
+    </div>
   </div>
 
-  <!-- ... -->
+  <!-- Новые слои для воды -->
+  <div class="water-depth"></div>
+  <div class="water-surface"></div>
+  <div class="water-highlights"></div>
+
+  <audio id="bgm" loop preload="auto">
+    <source src="cocodoco.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="loseSound" preload="auto">
+    <source src="whenloose.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="punchSound" preload="auto">
+    <source src="punch.wav" type="audio/wav">
+  </audio>
+  <audio id="boomSound" preload="auto">
+    <source src="boom.wav" type="audio/wav">
+  </audio>
+
+  <div id="game">
+    <div id="waves"></div>
+    <img id="dedImage" src="ded.png" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; object-fit:cover; z-index:99;">
+    <img id="friends" src="friends.png">
+    <div id="score-display">Очки: <span id="score">0</span> | Рекорд: <span id="high-score">0</span></div>
+    <div id="combo-display">COMBO: <span id="combo-count">0</span>x</div>
+    <div id="message"></div>
+  </div>
 
   <script>
-    // Добавляем новые функции для водных эффектов
-    function createRipple(x, y, size = 100) {
-      const ripple = document.createElement('div');
-      ripple.className = 'ripple';
-      ripple.style.left = x + 'px';
-      ripple.style.top = y + 'px';
-      ripple.style.width = size + 'px';
-      ripple.style.height = size + 'px';
-      document.querySelector('.water-ripples').appendChild(ripple);
-      setTimeout(() => ripple.remove(), 2000);
+    // Ресурсы для предзагрузки
+    const resources = {
+      audio: ['cocodoco.mp3', 'whenloose.mp3', 'punch.wav', 'boom.wav'],
+      images: ['friends.png', 'crocodile.png', 'ded.png']
+    };
+
+    // Инициализация игры
+    let gameOver = false;
+    let crocodiles = [];
+    let audioEnabled = false;
+    let score = 0;
+    let highScore = localStorage.getItem('highScore') || 0;
+    let comboCount = 0;
+    let comboTimeout;
+    let level = 1;
+    let speedMultiplier = 1;
+    let lastTrailTime = 0;
+
+    // DOM элементы
+    const game = document.getElementById('game');
+    const message = document.getElementById('message');
+    const friends = document.getElementById('friends');
+    const bgm = document.getElementById('bgm');
+    const loseSound = document.getElementById('loseSound');
+    const punchSound = document.getElementById('punchSound');
+    const boomSound = document.getElementById('boomSound');
+    const dedImage = document.getElementById('dedImage');
+    const scoreDisplay = document.getElementById('score');
+    const highScoreDisplay = document.getElementById('high-score');
+    const comboDisplay = document.getElementById('combo-display');
+    const comboCountDisplay = document.getElementById('combo-count');
+    const progressBar = document.getElementById('progress-bar');
+
+    // Предзагрузка ресурсов
+    function loadResources() {
+      let loaded = 0;
+      const total = resources.audio.length + resources.images.length;
+
+      function updateProgress() {
+        loaded++;
+        const percent = Math.round((loaded / total) * 100);
+        progressBar.style.width = percent + '%';
+        
+        if (loaded === total) {
+          setTimeout(() => {
+            document.getElementById('loading').style.display = 'none';
+            initGame();
+          }, 500);
+        }
+      }
+
+      // Загрузка аудио
+      resources.audio.forEach(audioFile => {
+        const audio = new Audio();
+        audio.src = audioFile;
+        audio.addEventListener('canplaythrough', updateProgress);
+        audio.addEventListener('error', updateProgress);
+      });
+
+      // Загрузка изображений
+      resources.images.forEach(imageFile => {
+        const img = new Image();
+        img.src = imageFile;
+        img.onload = updateProgress;
+        img.onerror = updateProgress;
+      });
     }
 
-    function createTrail(x, y) {
+    // Активация аудио
+    function enableAudio() {
+      if (audioEnabled) return;
+      audioEnabled = true;
+      bgm.volume = 0.5;
+      loseSound.volume = 0.7;
+      punchSound.volume = 0.7;
+      boomSound.volume = 0.3;
+      bgm.play().catch(e => console.log("Audio error:", e));
+    }
+
+    // Создание волн вокруг друзей
+    function createFriendWaves() {
+      const waves = document.getElementById('waves');
+      [-80, 0, 80].forEach(offset => {
+        const w = document.createElement('div');
+        w.className = 'friend-wave';
+        w.style.left = 'calc(50% + ' + offset + 'px)';
+        w.style.top = '50%';
+        waves.appendChild(w);
+      });
+    }
+
+    // Создание следа от крокодила
+    function createCrocTrail(x, y) {
+      const now = Date.now();
+      if (now - lastTrailTime < 300) return;
+      lastTrailTime = now;
+      
       const trail = document.createElement('div');
-      trail.className = 'crocodile-trail';
+      trail.className = 'croc-trail';
       trail.style.left = x + 'px';
       trail.style.top = y + 'px';
+      trail.style.width = (30 + Math.random() * 40) + 'px';
+      trail.style.height = trail.style.width;
+      trail.style.animationDuration = (2 + Math.random() * 2) + 's';
+      game.appendChild(trail);
       
-      // Добавляем случайные вариации
-      trail.style.width = (30 + Math.random() * 20) + 'px';
-      trail.style.height = (20 + Math.random() * 10) + 'px';
-      trail.style.animationDuration = (1 + Math.random()) + 's';
-      
-      document.querySelector('.water-ripples').appendChild(trail);
-      setTimeout(() => trail.remove(), 1500);
+      setTimeout(() => {
+        trail.remove();
+      }, 3000);
     }
 
-    // Модифицируем функцию движения крокодила
+    // Создание водного всплеска
+    function createSplash(x, y) {
+      for (let i = 1; i <= 3; i++) {
+        const splash = document.createElement('div');
+        splash.className = `splash splash-${i}`;
+        splash.style.left = (x + (Math.random() * 20 - 10)) + 'px';
+        splash.style.top = (y + (Math.random() * 20 - 10)) + 'px';
+        splash.style.width = (40 + Math.random() * 40) + 'px';
+        splash.style.height = splash.style.width;
+        game.appendChild(splash);
+        
+        setTimeout(() => {
+          splash.remove();
+        }, 2000);
+      }
+    }
+
+    // Создание крокодила
     function createCrocodile() {
       if (gameOver) return;
       
@@ -165,11 +485,28 @@
       wrapper.appendChild(croc);
       game.appendChild(wrapper);
 
-      // ... (остальной код создания крокодила остается без изменений) ...
+      // Позиция за пределами экрана
+      const side = Math.floor(Math.random() * 4);
+      let x, y;
+      if (side === 0) { x = -150; y = Math.random() * window.innerHeight; }
+      else if (side === 1) { x = window.innerWidth + 150; y = Math.random() * window.innerHeight; }
+      else if (side === 2) { x = Math.random() * window.innerWidth; y = -150; }
+      else { x = Math.random() * window.innerWidth; y = window.innerHeight + 150; }
 
-      let lastTrailTime = 0;
-      const trailInterval = 200; // Интервал между следами в мс
+      wrapper.style.left = x + 'px';
+      wrapper.style.top = y + 'px';
 
+      // Расчет направления движения
+      const rect = friends.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const angle = Math.atan2(centerY - y, centerX - x);
+      wrapper.style.transform = `rotate(${angle * 180 / Math.PI - 90}deg)`;
+
+      // Скорость зависит от уровня
+      const speed = (1.5 + Math.random() * 0.5) * speedMultiplier;
+
+      // Движение крокодила
       function move() {
         if (gameOver) return;
         x += Math.cos(angle) * speed;
@@ -177,20 +514,50 @@
         wrapper.style.left = x + 'px';
         wrapper.style.top = y + 'px';
 
-        // Создаем следы с интервалом
-        const now = Date.now();
-        if (now - lastTrailTime > trailInterval) {
-          createTrail(x + 60, y + 40); // Смещаем след относительно крокодила
-          lastTrailTime = now;
+        // Создание следа
+        if (Math.random() < 0.3) {
+          createCrocTrail(x + 60, y + 60);
         }
 
-        // ... (остальной код движения остается без изменений) ...
+        // Проверка столкновения с друзьями
+        const f = friends.getBoundingClientRect();
+        const c = wrapper.getBoundingClientRect();
+        const shrink = 0.2;
+        const sw = f.width * shrink / 2;
+        const sh = f.height * shrink / 2;
+        const overlap = !(
+          c.right < f.left + sw ||
+          c.left > f.right - sw ||
+          c.bottom < f.top + sh ||
+          c.top > f.bottom - sh
+        );
+
+        if (overlap) {
+          endGame(false);
+          return;
+        }
+
+        // Удаление если вышел за пределы
+        if (x < -200 || x > window.innerWidth + 200 || y < -200 || y > window.innerHeight + 200) {
+          wrapper.remove();
+          crocodiles = crocodiles.filter(c => c !== wrapper);
+          return;
+        }
+
+        requestAnimationFrame(move);
       }
 
-      // ... (остальной код функции остается без изменений) ...
+      move();
+
+      // Обработчики клика/тапа
+      const handleClick = () => killCrocodile(wrapper, croc);
+      croc.addEventListener('click', handleClick);
+      croc.addEventListener('touchstart', handleClick, { passive: true });
+
+      crocodiles.push(wrapper);
     }
 
-    // Модифицируем функцию уничтожения крокодила
+    // Уничтожение крокодила с эффектами
     function killCrocodile(wrapper, croc) {
       if (gameOver) return;
       
@@ -198,22 +565,185 @@
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
       
-      // Создаем большой всплеск при уничтожении
-      for (let i = 0; i < 5; i++) {
-        setTimeout(() => {
-          createRipple(
-            centerX + (Math.random() * 80 - 40),
-            centerY + (Math.random() * 80 - 40),
-            80 + Math.random() * 70
-          );
-        }, i * 150);
+      // 1. Эффект взрыва
+      const explosion = document.createElement('div');
+      explosion.className = 'explosion';
+      explosion.style.left = centerX + 'px';
+      explosion.style.top = centerY + 'px';
+      game.appendChild(explosion);
+      
+      // 2. Создание частиц
+      for (let i = 0; i < 20; i++) {
+        createParticle(centerX, centerY);
       }
-
-      // ... (остальной код уничтожения остается без изменений) ...
+      
+      // 3. Водный всплеск
+      createSplash(centerX, centerY);
+      
+      // 4. Анимация "проваливания" крокодила
+      croc.style.animation = 'croc-sink 0.4s forwards';
+      
+      // 5. Эффект "шока" у друзей
+      friends.style.animation = 'friends-shock 0.3s 2';
+      setTimeout(() => {
+        friends.style.animation = 'bobbing 3s infinite ease-in-out';
+      }, 600);
+      
+      // 6. Звуковые эффекты
+      if (audioEnabled) {
+        punchSound.currentTime = 0;
+        punchSound.play();
+        boomSound.currentTime = 0;
+        boomSound.play();
+      }
+      
+      // Удаление элементов после анимации
+      setTimeout(() => {
+        wrapper.remove();
+        explosion.remove();
+        crocodiles = crocodiles.filter(c => c !== wrapper);
+      }, 500);
+      
+      addScore(10);
+      addCombo();
     }
 
-    // Остальной код скрипта остается без изменений
-    // ...
+    // Создание частицы
+    function createParticle(x, y) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = x + 'px';
+      p.style.top = y + 'px';
+      p.style.background = `hsl(${Math.random() * 60 + 20}, 100%, 50%)`;
+      
+      const angle = Math.random() * Math.PI * 2;
+      p.style.setProperty('--tx', Math.cos(angle));
+      p.style.setProperty('--ty', Math.sin(angle));
+      
+      game.appendChild(p);
+      setTimeout(() => p.remove(), 1000);
+    }
+
+    // Добавление очков
+    function addScore(points) {
+      score += points;
+      scoreDisplay.textContent = score;
+      
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('highScore', highScore);
+        highScoreDisplay.textContent = highScore;
+      }
+      
+      // Проверка уровня
+      if (score >= level * 100) {
+        updateLevel();
+      }
+    }
+
+    // Система комбо
+    function addCombo() {
+      comboCount++;
+      clearTimeout(comboTimeout);
+      comboTimeout = setTimeout(() => {
+        comboDisplay.style.opacity = '0';
+        comboCount = 0;
+      }, 2000);
+      
+      comboCountDisplay.textContent = comboCount;
+      comboDisplay.style.opacity = '1';
+      
+      // Бонус за комбо
+      if (comboCount >= 3) {
+        const bonus = Math.floor(comboCount / 3) * 5;
+        addScore(bonus);
+      }
+    }
+
+    // Обновление уровня
+    function updateLevel() {
+      level++;
+      speedMultiplier = 1 + (level * 0.15);
+      
+      // Визуальный эффект нового уровня
+      const levelUp = document.createElement('div');
+      levelUp.textContent = `Уровень ${level}!`;
+      levelUp.style.position = 'fixed';
+      levelUp.style.top = '50%';
+      levelUp.style.left = '50%';
+      levelUp.style.transform = 'translate(-50%, -50%)';
+      levelUp.style.color = 'gold';
+      levelUp.style.fontSize = '48px';
+      levelUp.style.fontWeight = 'bold';
+      levelUp.style.textShadow = '0 0 10px black';
+      levelUp.style.zIndex = '50';
+      levelUp.style.animation = 'pop 1s forwards';
+      game.appendChild(levelUp);
+      
+      setTimeout(() => {
+        levelUp.remove();
+      }, 1500);
+    }
+
+    // Завершение игры
+    function endGame(win) {
+      gameOver = true;
+      crocodiles.forEach(croc => croc.remove());
+      crocodiles = [];
+      
+      if (win) {
+        window.location.href = "http://lera-birthday.com/final";
+      } else {
+        if (audioEnabled) {
+          fadeOutAudio(bgm, () => loseSound.play());
+        }
+        dedImage.style.display = 'block';
+        message.innerHTML = 'Ты не спасла друзей!<br>Очки: ' + score + '<br><br><button onclick="window.location.reload()">Попробовать ещё раз</button>';
+        message.style.display = 'block';
+      }
+    }
+
+    // Плавное затухание звука
+    function fadeOutAudio(audio, callback) {
+      const fadeInterval = setInterval(() => {
+        if (audio.volume > 0.05) {
+          audio.volume -= 0.05;
+        } else {
+          audio.volume = 0;
+          clearInterval(fadeInterval);
+          if (callback) callback();
+        }
+      }, 100);
+    }
+
+    // Инициализация игры
+    function initGame() {
+      // Активация аудио по взаимодействию
+      document.addEventListener('click', enableAudio);
+      document.addEventListener('touchstart', enableAudio, { passive: true });
+      
+      // Обновление рекорда
+      highScoreDisplay.textContent = highScore;
+      
+      // Начало игры
+      createFriendWaves();
+      
+      // Спаун крокодилов
+      const spawn = () => {
+        if (gameOver) return;
+        createCrocodile();
+        setTimeout(spawn, 1500 + Math.random() * 1000);
+      };
+      spawn();
+      
+      // Таймер игры (60 секунд)
+      setTimeout(() => {
+        if (!gameOver) endGame(true);
+      }, 60000);
+    }
+
+    // Запуск предзагрузки
+    loadResources();
   </script>
 </body>
 </html>
